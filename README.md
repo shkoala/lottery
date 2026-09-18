@@ -1,34 +1,21 @@
-# Scratch & Speak v3
+# Scratch & Speak v5
 
-A polished classroom scratch-card game for GitHub Pages.
+v5 is a more visual, more playful redesign.
 
-## New in v3
-- **Teacher mode** with random mini-tasks:
-  - Say it
-  - Spell it
-  - Make a sentence
-  - Ask a question
-  - Translate it
-- Optional **timer**: 15 / 30 / 45 / 60 / 90 seconds
-- Optional synthesized **scratch sound**
-- Optional **confetti** when a card is revealed
-- **Export / import ready sets** as JSON
-  - words
-  - image links/data
-  - mode
-  - theme
-  - teacher settings
-  - timer and effects
+## Improved in v5
+- much bigger word reveal
+- slower scratch opening (higher reveal threshold)
+- more decorative theme scenes
+- brighter framed picture cards
+- reveal pop effect and gloss animation on the word plate
 
-## Existing features
-- Word / Picture + word / Picture only
-- CSV / TSV / pasted-table import
-- 4 visual themes: School, Magic, Neon, Cute
-- Automatic font sizing for long phrases
-- Upload images or paste image URLs
-- Random order with no repeats until the deck is complete
-- Full-screen mode
-- Browser state saving
+## Themes
+1. Lottery — ticket booth, foil surface, coin cursor
+2. School — notebook desk, pencil cursor, black scribble layer
+3. Old house — dusty cabinet vibe, cloth cursor
+4. Treasure map — pirate map scene, sand layer, brush cursor
 
-## GitHub Pages
-Upload `index.html`, `style.css`, and `script.js` to a repository, then enable GitHub Pages from the `main` branch.
+## Files
+- index.html
+- style.css
+- script.js

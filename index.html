@@ -3,24 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scratch & Speak v3</title>
+  <title>Scratch & Speak v5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body data-theme="school">
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-  <div class="bg-orb orb-3"></div>
-
+<body data-theme="lottery">
   <main class="app-shell">
     <section id="setupScreen" class="panel setup-panel active">
       <div class="setup-header">
         <div>
-          <p class="eyebrow">Interactive classroom game · v3</p>
+          <p class="eyebrow">Interactive classroom game · deluxe redesign</p>
           <h1>Scratch &amp; Speak</h1>
-          <p class="subtext">Big scratch-card reveals for lessons. Add your own words, import a table, attach images, and switch the look in one click.</p>
+          <p class="subtext">Bigger reveal, more stylised theme scenes, brighter picture cards, and a more playful scratch experience.</p>
         </div>
         <button id="fullscreenBtn" class="ghost-btn" type="button">⛶ Full screen</button>
       </div>
@@ -32,7 +28,7 @@
             <button id="fillDemoBtn" class="mini-btn" type="button">Load demo list</button>
           </div>
           <textarea id="wordsInput" spellcheck="false" placeholder="One item per line&#10;cat&#10;dog&#10;apple&#10;travel"></textarea>
-          <p class="helper-text">One line = one card. You can also import a CSV or paste a 2-column table below.</p>
+          <p class="helper-text">One line = one card. Picture modes use the images you add below.</p>
         </div>
 
         <div class="card soft-card">
@@ -42,21 +38,21 @@
               <input type="radio" name="mode" value="word" checked />
               <span>
                 <strong>Word</strong>
-                <small>Only a large word after scratching</small>
+                <small>Only a very large word after scratching</small>
               </span>
             </label>
             <label class="mode-option">
               <input type="radio" name="mode" value="picture-word" />
               <span>
                 <strong>Picture + word</strong>
-                <small>Image and word together</small>
+                <small>Bright framed picture and word together</small>
               </span>
             </label>
             <label class="mode-option">
               <input type="radio" name="mode" value="picture" />
               <span>
                 <strong>Picture only</strong>
-                <small>Reveal the image, then show the word separately</small>
+                <small>Picture first, word later with Show word</small>
               </span>
             </label>
           </div>
@@ -71,106 +67,76 @@
               <p>No repeats until the whole list is used.</p>
             </div>
           </div>
-
-          <div class="theme-block">
-            <h3>Theme</h3>
-            <div class="theme-grid">
-              <button class="theme-chip selected" type="button" data-theme="school">School</button>
-              <button class="theme-chip" type="button" data-theme="magic">Magic</button>
-              <button class="theme-chip" type="button" data-theme="neon">Neon</button>
-              <button class="theme-chip" type="button" data-theme="cute">Cute</button>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div class="card soft-card import-card">
+      <div class="card soft-card theme-card">
         <div class="card-head">
           <div>
-            <h2>Import from CSV / table</h2>
-            <p class="helper-text">Supports CSV or pasted table. Use 1 or 2 columns: <strong>word</strong> or <strong>word + image URL</strong>.</p>
-          </div>
-          <div class="import-actions-top">
-            <label class="mini-btn fake-file-btn">
-              <input id="csvFileInput" type="file" accept=".csv,.txt,.tsv" hidden />
-              Upload file
-            </label>
-            <button id="importTableBtn" class="mini-btn" type="button">Import text</button>
+            <h2>Theme</h2>
+            <p class="helper-text">Each theme changes the stage, visual props, scratch texture, and tool cursor.</p>
           </div>
         </div>
-        <textarea id="tableInput" class="table-input" spellcheck="false" placeholder="Examples:&#10;cat,https://example.com/cat.png&#10;dog,https://example.com/dog.png&#10;&#10;or paste 2 columns from a spreadsheet"></textarea>
+        <div class="theme-grid">
+          <button class="theme-option selected" type="button" data-theme="lottery">
+            <span class="theme-icon">🎟️</span>
+            <span class="theme-copy"><strong>Lottery</strong><small>Ticket booth • silver foil • coin</small></span>
+          </button>
+          <button class="theme-option" type="button" data-theme="school">
+            <span class="theme-icon">📓</span>
+            <span class="theme-copy"><strong>School</strong><small>Notebook desk • black scribble • pencil</small></span>
+          </button>
+          <button class="theme-option" type="button" data-theme="oldhouse">
+            <span class="theme-icon">🏚️</span>
+            <span class="theme-copy"><strong>Old house</strong><small>Dusty cupboard • lace frame • cloth</small></span>
+          </button>
+          <button class="theme-option" type="button" data-theme="treasure">
+            <span class="theme-icon">🗺️</span>
+            <span class="theme-copy"><strong>Treasure map</strong><small>Pirate deck • sandy map • brush</small></span>
+          </button>
+        </div>
       </div>
 
-
-      <div class="setup-grid extras-grid">
-        <div class="card soft-card">
-          <h2>Teacher mode</h2>
-          <div class="toggle-row compact-toggle">
-            <label class="switch">
-              <input id="teacherModeToggle" type="checkbox" />
-              <span class="slider"></span>
-            </label>
-            <div>
-              <strong>Show a mini-task after reveal</strong>
-              <p>Perfect for speaking, spelling and quick revision.</p>
-            </div>
-          </div>
-          <div id="teacherTaskOptions" class="task-options disabled-block">
-            <label><input type="checkbox" value="Say it" checked> Say it</label>
-            <label><input type="checkbox" value="Spell it" checked> Spell it</label>
-            <label><input type="checkbox" value="Make a sentence" checked> Make a sentence</label>
-            <label><input type="checkbox" value="Ask a question" checked> Ask a question</label>
-            <label><input type="checkbox" value="Translate it" checked> Translate it</label>
+      <div class="card soft-card extras-card">
+        <div class="card-head">
+          <div>
+            <h2>Extras</h2>
+            <p class="helper-text">Optional prompts, timer, sound, confetti, and export/import.</p>
           </div>
         </div>
+        <div class="extras-grid">
+          <div class="extra-block">
+            <label class="checkline"><input id="teacherModeToggle" type="checkbox" checked /> <span>Teacher mode prompt</span></label>
+            <div class="mini-checks" id="promptChecks">
+              <label><input type="checkbox" value="Say it" checked> Say it</label>
+              <label><input type="checkbox" value="Spell it" checked> Spell it</label>
+              <label><input type="checkbox" value="Make a sentence" checked> Make a sentence</label>
+              <label><input type="checkbox" value="Ask a question" checked> Ask a question</label>
+              <label><input type="checkbox" value="Translate it" checked> Translate it</label>
+            </div>
+          </div>
 
-        <div class="card soft-card">
-          <h2>Timer & effects</h2>
-          <div class="control-row">
+          <div class="extra-block">
             <label for="timerSelect"><strong>Timer</strong></label>
             <select id="timerSelect">
               <option value="0">Off</option>
               <option value="15">15 sec</option>
-              <option value="30">30 sec</option>
+              <option value="30" selected>30 sec</option>
               <option value="45">45 sec</option>
               <option value="60">60 sec</option>
               <option value="90">90 sec</option>
             </select>
+            <label class="checkline"><input id="soundToggle" type="checkbox" checked /> <span>Scratch sound</span></label>
+            <label class="checkline"><input id="confettiToggle" type="checkbox" checked /> <span>Confetti on reveal</span></label>
           </div>
-          <div class="toggle-row compact-toggle">
-            <label class="switch">
-              <input id="soundToggle" type="checkbox" checked />
-              <span class="slider"></span>
-            </label>
-            <div><strong>Scratch sound</strong><p>Soft synthesized sound while scratching.</p></div>
-          </div>
-          <div class="toggle-row compact-toggle">
-            <label class="switch">
-              <input id="confettiToggle" type="checkbox" checked />
-              <span class="slider"></span>
-            </label>
-            <div><strong>Confetti</strong><p>Celebration when a card is revealed.</p></div>
-          </div>
-        </div>
-      </div>
 
-      <div class="card soft-card set-card">
-        <div class="card-head">
-          <div>
-            <h2>Save or open a ready set</h2>
-            <p class="helper-text">Export everything — words, image links, mode, theme and teacher settings — into one JSON file.</p>
-          </div>
-          <div class="import-actions-top">
-            <button id="exportSetBtn" class="mini-btn" type="button">Export set</button>
-            <label class="mini-btn fake-file-btn">
-              <input id="importSetInput" type="file" accept=".json,application/json" hidden />
+          <div class="extra-block export-block">
+            <button id="exportSetBtn" class="secondary-btn" type="button">Export set</button>
+            <label class="secondary-btn fake-file-btn">
+              <input id="importSetInput" type="file" accept=".json" hidden />
               Import set
             </label>
           </div>
-        </div>
-        <div class="set-name-row">
-          <label for="setNameInput">Set name</label>
-          <input id="setNameInput" type="text" placeholder="e.g. Unit 2 — Animals" />
         </div>
       </div>
 
@@ -178,7 +144,7 @@
         <div class="card-head">
           <div>
             <h2>Images</h2>
-            <p class="helper-text">Useful for Picture + word and Picture only modes. You can upload an image or paste an image URL.</p>
+            <p class="helper-text">Use in Picture + word and Picture only modes.</p>
           </div>
           <button id="buildImageRowsBtn" class="mini-btn" type="button">Refresh image list</button>
         </div>
@@ -197,7 +163,10 @@
         <div>
           <p class="eyebrow">Scratch the card to reveal</p>
           <h2 id="progressTitle">Card 1 / 1</h2>
-          <div id="timerPill" class="timer-pill hidden">00:30</div>
+        </div>
+        <div class="topbar-center">
+          <div id="timerBadge" class="timer-badge hidden">00</div>
+          <div id="teacherPrompt" class="teacher-prompt hidden"></div>
         </div>
         <div class="topbar-actions">
           <button id="backBtn" class="ghost-btn" type="button">← Settings</button>
@@ -206,21 +175,31 @@
       </div>
 
       <div class="stage-wrap">
-        <div class="scratch-stage">
+        <div id="scratchStage" class="scratch-stage theme-lottery">
+          <div class="scene scene-top"></div>
+          <div class="scene scene-left"></div>
+          <div class="scene scene-right"></div>
+          <div class="scene scene-bottom"></div>
           <div id="resultCard" class="result-card">
+            <div id="themeBadge" class="theme-badge">Lucky Ticket</div>
             <div id="imageWrap" class="image-wrap hidden">
+              <div class="image-glow"></div>
               <img id="resultImage" alt="Revealed item image" />
             </div>
-            <div id="resultWord" class="result-word">WORD</div>
-            <div id="teacherTask" class="teacher-task hidden"></div>
+            <div class="word-plate">
+              <div id="resultWord" class="result-word">WORD</div>
+            </div>
             <button id="showWordBtn" class="secondary-btn hidden" type="button">Show word</button>
+            <div class="spark spark-1"></div>
+            <div class="spark spark-2"></div>
+            <div class="spark spark-3"></div>
           </div>
           <canvas id="scratchCanvas" width="1200" height="900" aria-label="Scratch area"></canvas>
-          <div class="sticker sticker-star">★</div>
-          <div class="sticker sticker-zap">✦</div>
-          <div class="sticker sticker-speech">Scratch!</div>
+          <div id="toolBadge" class="tool-badge">Coin scratch</div>
         </div>
       </div>
+
+      <canvas id="confettiCanvas" class="confetti-canvas hidden"></canvas>
 
       <div class="game-actions">
         <button id="clearBtn" class="secondary-btn" type="button">Reveal all</button>
