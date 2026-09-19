@@ -84,6 +84,20 @@
           </div>
           <button id="buildImageRowsBtn" class="mini-btn" type="button">Refresh picture list</button>
         </div>
+        <div class="yandex-tools">
+          <div class="yandex-tools-copy">
+            <strong>Find pictures in Yandex</strong>
+            <span>No API or Cloud needed. Choose the search style, then click <strong>Find in Yandex</strong> next to a word. Pick an image, save it, and upload it here.</span>
+          </div>
+          <div class="yandex-tools-row search-only">
+            <select id="yandexStyleSelect" class="picture-style-select">
+              <option value="illustration" selected>Illustration</option>
+              <option value="photo">Photo</option>
+              <option value="any">Any</option>
+            </select>
+            <div class="search-tip">The search opens in a new tab. Your game stays open.</div>
+          </div>
+        </div>
         <div id="imageRows" class="image-rows empty-state-box">
           <p>Add your words first, then click <strong>Refresh picture list</strong>.</p>
         </div>
@@ -138,6 +152,8 @@
           </div>
         </div>
       </div>
+
+      <canvas id="confettiCanvas" class="confetti-canvas hidden"></canvas>
 
       <div class="game-actions">
         <button id="clearBtn" class="secondary-btn" type="button">Reveal all</button>

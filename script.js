@@ -22,12 +22,16 @@ const resultImage = document.getElementById('resultImage');
 const resultWord = document.getElementById('resultWord');
 const showWordBtn = document.getElementById('showWordBtn');
 const scratchCanvas = document.getElementById('scratchCanvas');
+const confettiCanvas = document.getElementById('confettiCanvas');
+const confettiCtx = confettiCanvas.getContext('2d');
+const yandexStyleSelect = document.getElementById('yandexStyleSelect');
 const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
 const ctx = scratchCanvas.getContext('2d', { willReadFrequently: true });
 
-const STORAGE_KEY = 'scratch_speak_lottery_v1';
+const STORAGE_KEY = 'scratch_speak_lottery_v3';
 const demoWords = ['dog', 'apple', 'holiday', 'music', 'teacher', 'banana'];
-const COIN_CURSOR = `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='78' height='78' viewBox='0 0 78 78'><defs><radialGradient id='g' cx='35%' cy='35%'><stop offset='0' stop-color='#fff7bf'/><stop offset='0.55' stop-color='#ffd24d'/><stop offset='1' stop-color='#ca9418'/></radialGradient></defs><circle cx='39' cy='39' r='28' fill='url(#g)' stroke='#a36c00' stroke-width='4'/><circle cx='39' cy='39' r='22' fill='none' stroke='rgba(255,255,255,.45)' stroke-width='2'/><text x='39' y='48' text-anchor='middle' font-size='26' font-family='Arial' font-weight='700' fill='#8f5a00'>₵</text></svg>`)}") 24 24, auto`;
+const AUTO_REVEAL_THRESHOLD = 70;
+const COIN_CURSOR = `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='92' height='92' viewBox='0 0 92 92'><defs><radialGradient id='g' cx='32%' cy='28%'><stop offset='0' stop-color='#fffbe0'/><stop offset='.28' stop-color='#ffe57b'/><stop offset='.63' stop-color='#ffc92f'/><stop offset='1' stop-color='#b77700'/></radialGradient><filter id='s'><feDropShadow dx='0' dy='4' stdDeviation='3' flood-opacity='.35'/></filter></defs><circle cx='46' cy='46' r='33' fill='url(#g)' stroke='#9d6200' stroke-width='4' filter='url(#s)'/><circle cx='46' cy='46' r='26' fill='none' stroke='rgba(255,255,255,.5)' stroke-width='2'/><path d='M27 38c10-12 29-15 41-5' stroke='rgba(255,255,255,.52)' stroke-width='4' fill='none' stroke-linecap='round'/><text x='46' y='57' text-anchor='middle' font-size='31' font-family='Arial' font-weight='700' fill='#875300'>₵</text></svg>`)}") 28 28, auto`;
 
 let cards = [];
 let deck = [];
@@ -35,16 +39,19 @@ let current = null;
 let usedCount = 0;
 let revealedEnough = false;
 let mode = 'word';
-let pointerDown = false;
 let audioContext = null;
 let lastScratchAt = 0;
+let scratchFields = [];
+let confettiParticles = [];
+let confettiAnimating = false;
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     wordsText: wordsInput.value,
     mode: getMode(),
     shuffle: shuffleToggle.checked,
-    images: gatherImageState()
+    images: gatherImageState(),
+    yandexStyle: yandexStyleSelect?.value || 'illustration'
   }));
 }
 
@@ -63,6 +70,7 @@ function loadState() {
       if (input) input.checked = true;
     }
     shuffleToggle.checked = data.shuffle ?? true;
+    if (yandexStyleSelect) yandexStyleSelect.value = data.yandexStyle || 'illustration';
     refreshModeStyles();
     buildImageRows(data.images || []);
   } catch {
@@ -83,10 +91,7 @@ function getMode() {
 }
 
 function parseWordsFromText(text) {
-  return text
-    .split(/\r?\n|,|;/)
-    .map(v => v.trim())
-    .filter(Boolean);
+  return text.split(/\r?\n|,|;/).map(v => v.trim()).filter(Boolean);
 }
 
 function parseWords() {
@@ -98,7 +103,8 @@ function buildImageRows(existing = []) {
   if (!words.length) {
     imageRows.className = 'image-rows empty-state-box';
     imageRows.innerHTML = '<p>Add your words first, then click <strong>Refresh picture list</strong>.</p>';
-    return saveState();
+    saveState();
+    return;
   }
   const savedMap = new Map(existing.map(item => [item.word.toLowerCase(), item]));
   imageRows.className = 'image-rows';
@@ -107,6 +113,7 @@ function buildImageRows(existing = []) {
   words.forEach(word => {
     const row = document.createElement('div');
     row.className = 'image-row';
+    row.dataset.word = word;
 
     const wordInput = document.createElement('input');
     wordInput.className = 'image-word-input';
@@ -123,35 +130,27 @@ function buildImageRows(existing = []) {
     urlInput.placeholder = 'Image URL (optional)';
 
     const tools = document.createElement('div');
-    tools.style.display = 'flex';
-    tools.style.gap = '8px';
-    tools.style.flexWrap = 'wrap';
+    tools.className = 'yandex-result-tools';
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.hidden = true;
 
-    const uploadBtn = document.createElement('button');
-    uploadBtn.type = 'button';
-    uploadBtn.className = 'mini-btn';
-    uploadBtn.textContent = 'Upload';
+    const uploadBtn = makeButton('Upload', 'mini-btn');
     uploadBtn.addEventListener('click', () => fileInput.click());
 
-    const urlBtn = document.createElement('button');
-    urlBtn.type = 'button';
-    urlBtn.className = 'mini-btn';
-    urlBtn.textContent = 'Use URL';
+    const urlBtn = makeButton('Use URL', 'mini-btn');
     urlBtn.addEventListener('click', () => {
       const src = urlInput.value.trim();
       if (src) setPreview(src);
     });
 
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.className = 'mini-btn';
-    clearBtn.textContent = 'Clear';
-    clearBtn.addEventListener('click', () => {
+    const yandexBtn = makeButton('Find in Yandex', 'mini-btn yandex-btn');
+    yandexBtn.addEventListener('click', () => openYandexImageSearch(word));
+
+    const clearImageBtn = makeButton('Clear', 'mini-btn');
+    clearImageBtn.addEventListener('click', () => {
       urlInput.value = '';
       setPreview('');
     });
@@ -166,7 +165,8 @@ function buildImageRows(existing = []) {
     function setPreview(src) {
       if (src) {
         preview.dataset.src = src;
-        preview.innerHTML = `<img src="${src}" alt="${word}">`;
+        preview.innerHTML = `<img src="${src}" alt="${escapeHtml(word)}">`;
+        if (/^https?:/i.test(src)) urlInput.value = src;
       } else {
         delete preview.dataset.src;
         preview.textContent = 'No image';
@@ -174,17 +174,28 @@ function buildImageRows(existing = []) {
       saveState();
     }
 
-    const existingItem = savedMap.get(word.toLowerCase());
-    if (existingItem?.imageSrc) {
-      setPreview(existingItem.imageSrc);
-      if (/^https?:/i.test(existingItem.imageSrc)) urlInput.value = existingItem.imageSrc;
-    }
+    row._setPreview = setPreview;
 
-    tools.append(uploadBtn, urlBtn, clearBtn, fileInput);
+    const existingItem = savedMap.get(word.toLowerCase());
+    if (existingItem?.imageSrc) setPreview(existingItem.imageSrc);
+
+    tools.append(yandexBtn, uploadBtn, urlBtn, clearImageBtn, fileInput);
     row.append(wordInput, preview, urlInput, tools);
     imageRows.appendChild(row);
   });
   saveState();
+}
+
+function makeButton(text, classes) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = classes;
+  b.textContent = text;
+  return b;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
 
 function gatherImageState() {
@@ -229,7 +240,10 @@ function loadNextCard() {
   usedCount = (usedCount % cards.length) + 1;
   progressTitle.textContent = `Ticket ${usedCount} / ${cards.length}`;
   renderCurrent();
-  prepareScratchSurface();
+  requestAnimationFrame(() => {
+    prepareScratchSurface();
+    fitWord();
+  });
   revealedEnough = false;
   nextBtn.disabled = true;
 }
@@ -239,44 +253,68 @@ function renderCurrent() {
   const hasPicture = mode !== 'word';
   picturePanel.classList.toggle('hidden', !hasPicture);
   showWordBtn.classList.toggle('hidden', mode !== 'picture');
+  wordPanel.classList.remove('hidden');
 
   if (mode === 'word') {
-    ticket.classList.add('single-field');
     ticketContent.className = 'ticket-content word-layout';
     resultWord.textContent = current.word;
     resultWord.classList.remove('hidden');
   } else if (mode === 'picture-word') {
-    ticket.classList.remove('single-field');
     ticketContent.className = 'ticket-content dual-layout';
     resultWord.textContent = current.word;
     resultWord.classList.remove('hidden');
     resultImage.src = current.imageSrc;
   } else {
-    ticket.classList.remove('single-field');
     ticketContent.className = 'ticket-content dual-layout';
     resultWord.textContent = '';
     resultWord.classList.add('hidden');
     resultImage.src = current.imageSrc;
   }
-  fitWord();
 }
 
-function fitWord() {
+async function fitWord() {
+  await document.fonts?.ready;
   const text = (current?.word || '').trim();
   if (!text || resultWord.classList.contains('hidden')) return;
-  const len = text.length;
-  let size = 'clamp(4.8rem, 10vw, 8rem)';
-  if (mode === 'word') {
-    size = 'clamp(5.4rem, 12vw, 8.8rem)';
-    if (len > 10) size = 'clamp(4.9rem, 10vw, 7.8rem)';
-    if (len > 18) size = 'clamp(4rem, 8vw, 6.8rem)';
-    if (len > 28) size = 'clamp(3rem, 6.2vw, 5.4rem)';
-  } else {
-    size = 'clamp(3.4rem, 5.5vw, 5.4rem)';
-    if (len > 14) size = 'clamp(3rem, 4.8vw, 4.6rem)';
-    if (len > 24) size = 'clamp(2.3rem, 3.8vw, 3.8rem)';
+
+  const boxWidth = Math.max(80, wordPanel.clientWidth - 36);
+  const boxHeight = Math.max(70, wordPanel.clientHeight - 28);
+  const isShortSingle = mode === 'word' && !/\s/.test(text) && text.length <= 8;
+  const oneLine = !/\s/.test(text) || text.length <= 15;
+
+  resultWord.style.transform = 'scaleX(1)';
+  resultWord.style.transformOrigin = 'center center';
+  resultWord.style.whiteSpace = oneLine ? 'nowrap' : 'normal';
+  resultWord.style.width = oneLine ? 'auto' : '100%';
+  resultWord.style.maxWidth = '100%';
+  resultWord.style.lineHeight = oneLine ? '.86' : '.94';
+
+  let low = 20;
+  let high = mode === 'word' ? 360 : 220;
+  let best = low;
+
+  for (let i = 0; i < 12; i++) {
+    const mid = (low + high) / 2;
+    resultWord.style.fontSize = `${mid}px`;
+    const r = resultWord.getBoundingClientRect();
+    if (r.width <= boxWidth * 0.98 && r.height <= boxHeight * 0.94) {
+      best = mid;
+      low = mid;
+    } else {
+      high = mid;
+    }
   }
-  resultWord.style.fontSize = size;
+
+  resultWord.style.fontSize = `${best}px`;
+
+  if (isShortSingle) {
+    const r = resultWord.getBoundingClientRect();
+    if (r.width > 0) {
+      const target = boxWidth * 0.96;
+      const scaleX = Math.min(1.9, Math.max(1, target / r.width));
+      resultWord.style.transform = `scaleX(${scaleX})`;
+    }
+  }
 }
 
 function prepareScratchSurface() {
@@ -287,35 +325,42 @@ function prepareScratchSurface() {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr, dpr);
   ctx.clearRect(0,0,rect.width,rect.height);
-  ctx.save();
-  roundRect(ctx, 0, 0, rect.width, rect.height, 30);
-  ctx.clip();
+  scratchFields = [];
 
-  // Leave outer ticket visible. Draw realistic scratch areas only.
   if (mode === 'word') {
-    drawScratchField({ x: 26, y: 70, w: rect.width - 52, h: rect.height - 128 });
+    addScratchField(wordPanel, 'word');
+  } else if (mode === 'picture-word') {
+    addScratchField(picturePanel, 'picture');
+    addScratchField(wordPanel, 'word');
   } else {
-    const innerX = 24;
-    const innerY = 72;
-    const innerW = rect.width - 48;
-    const innerH = rect.height - 128;
-    const gap = 18;
-    const picW = innerW * 0.43;
-    const wordW = innerW - picW - gap;
-    drawScratchField({ x: innerX, y: innerY, w: picW, h: innerH });
-    drawScratchField({ x: innerX + picW + gap, y: innerY, w: wordW, h: innerH });
+    addScratchField(picturePanel, 'picture');
   }
-  ctx.restore();
+
   scratchCanvas.style.cursor = COIN_CURSOR;
+}
+
+function addScratchField(element, type) {
+  const ticketRect = ticket.getBoundingClientRect();
+  const elRect = element.getBoundingClientRect();
+  const rect = {
+    x: elRect.left - ticketRect.left,
+    y: elRect.top - ticketRect.top,
+    w: elRect.width,
+    h: elRect.height
+  };
+  scratchFields.push({ type, rect, revealed: false });
+  drawScratchField(rect);
 }
 
 function drawScratchField({x,y,w,h}) {
   const silver = ctx.createLinearGradient(x, y, x + w, y + h);
-  silver.addColorStop(0, '#a5afc4');
-  silver.addColorStop(.18, '#eef2fa');
-  silver.addColorStop(.42, '#c9d0dd');
-  silver.addColorStop(.62, '#f8fbff');
-  silver.addColorStop(1, '#9ba7bc');
+  silver.addColorStop(0, '#8f9bb2');
+  silver.addColorStop(.12, '#f5f7fb');
+  silver.addColorStop(.28, '#bac4d5');
+  silver.addColorStop(.47, '#ffffff');
+  silver.addColorStop(.65, '#c8d0dd');
+  silver.addColorStop(.84, '#eef2f8');
+  silver.addColorStop(1, '#8f9bb2');
 
   roundRect(ctx, x, y, w, h, 24);
   ctx.fillStyle = silver;
@@ -324,21 +369,21 @@ function drawScratchField({x,y,w,h}) {
   ctx.save();
   roundRect(ctx, x, y, w, h, 24);
   ctx.clip();
-  ctx.globalAlpha = .28;
-  for (let i = 0; i < 22; i++) {
-    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.38)' : 'rgba(255,255,255,.12)';
-    ctx.fillRect(x - 20 + i * (w / 12), y, 18, h);
+  ctx.globalAlpha = .2;
+  for (let i = 0; i < 28; i++) {
+    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.5)' : 'rgba(85,98,120,.12)';
+    ctx.fillRect(x - 20 + i * (w / 16), y, 12, h);
   }
-  ctx.globalAlpha = .14;
-  for (let i = 0; i < 200; i++) {
-    ctx.fillStyle = i % 4 ? 'rgba(255,255,255,.35)' : 'rgba(120,128,145,.28)';
+  ctx.globalAlpha = .2;
+  for (let i = 0; i < 260; i++) {
+    ctx.fillStyle = i % 5 ? 'rgba(255,255,255,.45)' : 'rgba(90,102,122,.35)';
     ctx.beginPath();
-    ctx.arc(x + Math.random() * w, y + Math.random() * h, Math.random() * 2 + .3, 0, Math.PI * 2);
+    ctx.arc(x + Math.random() * w, y + Math.random() * h, Math.random() * 1.8 + .25, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 
-  ctx.strokeStyle = 'rgba(120,132,159,.45)';
+  ctx.strokeStyle = 'rgba(100,112,137,.48)';
   ctx.lineWidth = 2;
   roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 24);
   ctx.stroke();
@@ -358,59 +403,207 @@ function scratchAt(ev) {
   const rect = scratchCanvas.getBoundingClientRect();
   const x = ev.clientX - rect.left;
   const y = ev.clientY - rect.top;
-  const size = Math.max(46, rect.width * .03);
+  const activeField = scratchFields.find(f => pointInRect(x, y, f.rect) && !f.revealed);
+  if (!activeField) return;
+
+  const size = Math.max(48, rect.width * .033);
   ctx.globalCompositeOperation = 'destination-out';
   const grad = ctx.createRadialGradient(x, y, size * .22, x, y, size);
   grad.addColorStop(0, 'rgba(0,0,0,1)');
+  grad.addColorStop(.78, 'rgba(0,0,0,.92)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(x, y, size, 0, Math.PI * 2);
   ctx.fill();
-  maybePlayScratchSound();
+  playScratchSound();
 }
 
-function maybePlayScratchSound() {
-  const now = performance.now();
-  if (now - lastScratchAt < 60) return;
-  lastScratchAt = now;
-  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(210 + Math.random() * 70, audioContext.currentTime);
-  gain.gain.setValueAtTime(0.015, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + .08);
-  osc.connect(gain).connect(audioContext.destination);
-  osc.start();
-  osc.stop(audioContext.currentTime + .08);
-}
-
-function getRevealedPercent() {
-  const data = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height).data;
-  let clearPixels = 0;
-  let total = 0;
-  for (let i = 3; i < data.length; i += 24) {
-    total++;
-    if (data[i] < 30) clearPixels++;
-  }
-  return (clearPixels / total) * 100;
+function pointInRect(x, y, r) {
+  return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 }
 
 function checkReveal() {
   if (revealedEnough) return;
-  const percent = getRevealedPercent();
-  if (percent >= 34) {
-    revealedEnough = true;
-    nextBtn.disabled = false;
+  let changed = false;
+  for (const field of scratchFields) {
+    if (field.revealed) continue;
+    const pct = fieldRevealPercent(field.rect);
+    if (pct >= AUTO_REVEAL_THRESHOLD) {
+      clearScratchField(field.rect);
+      field.revealed = true;
+      changed = true;
+    }
   }
+  if (changed && scratchFields.every(f => f.revealed)) celebrateReveal();
+}
+
+function fieldRevealPercent(r) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const data = ctx.getImageData(
+    Math.max(0, Math.floor(r.x * dpr)),
+    Math.max(0, Math.floor(r.y * dpr)),
+    Math.max(1, Math.floor(r.w * dpr)),
+    Math.max(1, Math.floor(r.h * dpr))
+  ).data;
+  let clear = 0;
+  let total = 0;
+  for (let i = 3; i < data.length; i += 48) {
+    total++;
+    if (data[i] < 30) clear++;
+  }
+  return total ? (clear / total) * 100 : 0;
+}
+
+function clearScratchField(r) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.clearRect(r.x - 3, r.y - 3, r.w + 6, r.h + 6);
+  ctx.restore();
 }
 
 function revealAll() {
-  const rect = scratchCanvas.getBoundingClientRect();
-  ctx.clearRect(0,0,rect.width,rect.height);
+  if (revealedEnough) return;
+  scratchFields.forEach(field => {
+    if (!field.revealed) clearScratchField(field.rect);
+    field.revealed = true;
+  });
+  celebrateReveal();
+}
+
+function celebrateReveal() {
+  if (revealedEnough) return;
   revealedEnough = true;
+  if (mode === 'picture') {
+    resultWord.textContent = current?.word || '';
+    resultWord.classList.remove('hidden');
+    showWordBtn.classList.add('hidden');
+    fitWord();
+  }
   nextBtn.disabled = false;
+  fireConfetti();
+  playFanfare();
+}
+
+function getAudio() {
+  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  return audioContext;
+}
+
+function playScratchSound() {
+  const nowMs = performance.now();
+  if (nowMs - lastScratchAt < 48) return;
+  lastScratchAt = nowMs;
+  const ac = getAudio();
+  const now = ac.currentTime;
+
+  const duration = 0.055;
+  const bufferSize = Math.floor(ac.sampleRate * duration);
+  const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const decay = 1 - i / bufferSize;
+    data[i] = (Math.random() * 2 - 1) * decay * 0.42;
+  }
+  const noise = ac.createBufferSource();
+  noise.buffer = buffer;
+  const band = ac.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 1550 + Math.random() * 500;
+  band.Q.value = 0.75;
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.035, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  noise.connect(band).connect(gain).connect(ac.destination);
+  noise.start(now);
+  noise.stop(now + duration);
+
+  const metal = ac.createOscillator();
+  const mg = ac.createGain();
+  metal.type = 'sine';
+  metal.frequency.setValueAtTime(2400 + Math.random() * 350, now);
+  mg.gain.setValueAtTime(0.009, now);
+  mg.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+  metal.connect(mg).connect(ac.destination);
+  metal.start(now);
+  metal.stop(now + 0.04);
+}
+
+function playFanfare() {
+  const ac = getAudio();
+  const now = ac.currentTime;
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  notes.forEach((freq, i) => {
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now + i * 0.105);
+    gain.gain.setValueAtTime(0.0001, now + i * 0.105);
+    gain.gain.linearRampToValueAtTime(0.07, now + i * 0.105 + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.105 + 0.28);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now + i * 0.105);
+    osc.stop(now + i * 0.105 + 0.3);
+  });
+}
+
+function fireConfetti() {
+  confettiCanvas.classList.remove('hidden');
+  const dpr = window.devicePixelRatio || 1;
+  confettiCanvas.width = window.innerWidth * dpr;
+  confettiCanvas.height = window.innerHeight * dpr;
+  confettiCtx.setTransform(1,0,0,1,0,0);
+  confettiCtx.scale(dpr, dpr);
+  confettiParticles = Array.from({ length: 160 }, () => ({
+    x: window.innerWidth / 2 + (Math.random() * 220 - 110),
+    y: window.innerHeight * 0.24 + (Math.random() * 20 - 10),
+    vx: Math.random() * 8 - 4,
+    vy: Math.random() * -8.5 - 2,
+    size: Math.random() * 8 + 5,
+    rot: Math.random() * Math.PI,
+    vr: Math.random() * 0.3 - 0.15,
+    color: ['#6f56f8','#04b7ff','#ffd764','#ff7f7f','#7af0b0'][Math.floor(Math.random()*5)],
+    life: 84 + Math.random() * 24,
+  }));
+  if (!confettiAnimating) animateConfetti();
+}
+
+function animateConfetti() {
+  confettiAnimating = true;
+  confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  confettiParticles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.16;
+    p.rot += p.vr;
+    p.life -= 1;
+    confettiCtx.save();
+    confettiCtx.translate(p.x, p.y);
+    confettiCtx.rotate(p.rot);
+    confettiCtx.fillStyle = p.color;
+    confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.64);
+    confettiCtx.restore();
+  });
+  confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < window.innerHeight + 30);
+  if (confettiParticles.length) requestAnimationFrame(animateConfetti);
+  else {
+    confettiAnimating = false;
+    confettiCanvas.classList.add('hidden');
+    confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+}
+
+function buildYandexQuery(word) {
+  const style = yandexStyleSelect?.value || 'illustration';
+  if (style === 'photo') return `${word} photo`;
+  if (style === 'illustration') return `${word} illustration`;
+  return word;
+}
+
+function openYandexImageSearch(word) {
+  const query = buildYandexQuery(word);
+  const url = `https://yandex.ru/images/search?text=${encodeURIComponent(query)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function importWordsFile(file) {
@@ -474,7 +667,8 @@ showWordBtn.addEventListener('click', () => {
 wordsInput.addEventListener('input', saveState);
 shuffleToggle.addEventListener('change', saveState);
 modeInputs.forEach(input => input.addEventListener('change', () => { refreshModeStyles(); saveState(); }));
-window.addEventListener('resize', () => { if (gameScreen.classList.contains('active')) prepareScratchSurface(); fitWord(); });
+yandexStyleSelect?.addEventListener('change', saveState);
+window.addEventListener('resize', () => { if (gameScreen.classList.contains('active')) { prepareScratchSurface(); fitWord(); } });
 
 let isDown = false;
 scratchCanvas.addEventListener('pointerdown', e => { isDown = true; scratchAt(e); checkReveal(); });

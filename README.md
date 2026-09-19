@@ -1,14 +1,19 @@
-# Scratch & Speak — Lottery Edition
+# Scratch & Speak — Lottery Edition v4
 
-Focused version with only the lottery style.
+This version removes all Yandex Cloud / API dependencies.
 
-## Features
-- lottery field background
-- realistic lottery ticket in the middle
-- large coin scratch cursor
-- word mode with one big scratch field
-- picture + word mode with two scratch fields
-- picture only mode
-- import your own words from .txt / .csv / .tsv
-- add your own pictures for picture modes
-- random order with no repeats until the deck ends
+## Picture workflow
+- Choose Illustration / Photo / Any.
+- Click **Find in Yandex** next to a word.
+- Yandex Images opens in a new tab with a ready-made query.
+- Choose the picture you like.
+- Save it to your device and click **Upload** in the game, or paste a direct image URL and click **Use URL**.
+
+## Other features
+- large adaptive words
+- short words expand to almost the full scratch-field width
+- realistic coin cursor and scratch sound
+- 70% auto-reveal calculated per scratch field
+- fanfare + confetti when all required fields are revealed
+- word-only, picture+word, and picture-only modes
+- import your own word base from TXT / CSV / TSV
