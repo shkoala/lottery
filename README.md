@@ -1,21 +1,14 @@
-# Scratch & Speak v5
+# Scratch & Speak — Lottery Edition
 
-v5 is a more visual, more playful redesign.
+Focused version with only the lottery style.
 
-## Improved in v5
-- much bigger word reveal
-- slower scratch opening (higher reveal threshold)
-- more decorative theme scenes
-- brighter framed picture cards
-- reveal pop effect and gloss animation on the word plate
-
-## Themes
-1. Lottery — ticket booth, foil surface, coin cursor
-2. School — notebook desk, pencil cursor, black scribble layer
-3. Old house — dusty cabinet vibe, cloth cursor
-4. Treasure map — pirate map scene, sand layer, brush cursor
-
-## Files
-- index.html
-- style.css
-- script.js
+## Features
+- lottery field background
+- realistic lottery ticket in the middle
+- large coin scratch cursor
+- word mode with one big scratch field
+- picture + word mode with two scratch fields
+- picture only mode
+- import your own words from .txt / .csv / .tsv
+- add your own pictures for picture modes
+- random order with no repeats until the deck ends
