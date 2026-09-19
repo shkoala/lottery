@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">Scratch & Speak · Lottery Edition</p>
           <h1>Scratch ticket game</h1>
-          <p class="subtext">Beautiful lottery-style reveal with a big coin scratch, your own word list, and optional pictures.</p>
+          <p class="subtext">A beautiful scratch-ticket game with large adaptive words, optional pictures, coin sound, auto reveal, and in-app picture search.</p>
         </div>
         <button id="fullscreenBtn" class="ghost-btn" type="button">⛶ Full screen</button>
       </div>
@@ -34,7 +34,7 @@
             </div>
           </div>
           <textarea id="wordsInput" spellcheck="false" placeholder="One word or phrase per line&#10;dog&#10;apple&#10;holiday"></textarea>
-          <p class="helper-text">You can type your own base here or import a file. One line = one ticket.</p>
+          <p class="helper-text">One line = one ticket. You can type your own list or import a file.</p>
         </div>
 
         <div class="card soft-card">
@@ -51,14 +51,14 @@
               <input type="radio" name="mode" value="picture-word" />
               <span>
                 <strong>Picture + word</strong>
-                <small>Ticket with two scratch fields: picture and word</small>
+                <small>Ticket with two scratch fields</small>
               </span>
             </label>
             <label class="mode-option">
               <input type="radio" name="mode" value="picture" />
               <span>
                 <strong>Picture only</strong>
-                <small>Scratch the picture field, show the word after</small>
+                <small>Scratch the picture, show the word after</small>
               </span>
             </label>
           </div>
@@ -80,24 +80,21 @@
         <div class="card-head">
           <div>
             <h2>Pictures for picture modes</h2>
-            <p class="helper-text">Add a picture for each word if you want Picture + word or Picture only.</p>
+            <p class="helper-text">Use the built-in picture search right inside the page. Click a result and it is inserted automatically.</p>
           </div>
           <button id="buildImageRowsBtn" class="mini-btn" type="button">Refresh picture list</button>
         </div>
-        <div class="yandex-tools">
-          <div class="yandex-tools-copy">
-            <strong>Find pictures in Yandex</strong>
-            <span>No API or Cloud needed. Choose the search style, then click <strong>Find in Yandex</strong> next to a word. Pick an image, save it, and upload it here.</span>
-          </div>
-          <div class="yandex-tools-row search-only">
-            <select id="yandexStyleSelect" class="picture-style-select">
-              <option value="illustration" selected>Illustration</option>
-              <option value="photo">Photo</option>
-              <option value="any">Any</option>
-            </select>
-            <div class="search-tip">The search opens in a new tab. Your game stays open.</div>
-          </div>
+
+        <div class="image-search-bar">
+          <select id="imageStyleSelect" class="picture-style-select">
+            <option value="illustration" selected>Illustration</option>
+            <option value="photo">Photo</option>
+            <option value="any">Any</option>
+          </select>
+          <button id="autoFillAllBtn" class="mini-btn gold-btn" type="button">Auto-fill all</button>
+          <div id="searchStatus" class="search-status">Choose picture mode only if all words have images.</div>
         </div>
+
         <div id="imageRows" class="image-rows empty-state-box">
           <p>Add your words first, then click <strong>Refresh picture list</strong>.</p>
         </div>
@@ -161,6 +158,25 @@
       </div>
     </section>
   </main>
+
+  <div id="imageModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <div class="modal-top">
+        <div>
+          <p class="eyebrow modal-eyebrow">Picture picker</p>
+          <h3 id="modalTitle">Find a picture</h3>
+        </div>
+        <button id="closeModalBtn" class="ghost-btn" type="button">✕</button>
+      </div>
+      <div class="modal-search-row">
+        <input id="modalSearchInput" class="modal-search-input" type="text" placeholder="Search term" />
+        <button id="modalSearchBtn" class="mini-btn gold-btn" type="button">Search</button>
+      </div>
+      <div id="modalMessage" class="modal-message">Loading pictures...</div>
+      <div id="modalResults" class="modal-results"></div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

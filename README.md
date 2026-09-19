@@ -1,19 +1,20 @@
-# Scratch & Speak — Lottery Edition v4
+# Scratch & Speak — Lottery Edition v5
 
-This version removes all Yandex Cloud / API dependencies.
-
-## Picture workflow
-- Choose Illustration / Photo / Any.
-- Click **Find in Yandex** next to a word.
-- Yandex Images opens in a new tab with a ready-made query.
-- Choose the picture you like.
-- Save it to your device and click **Upload** in the game, or paste a direct image URL and click **Use URL**.
+## New in v5
+- built-in picture picker inside the page
+- click **Search** → a small modal opens with picture results
+- click any picture → it is inserted automatically into the row
+- **Auto** button for a single word: inserts the first found picture automatically
+- **Auto-fill all**: tries to add pictures for all words automatically
 
 ## Other features
 - large adaptive words
-- short words expand to almost the full scratch-field width
-- realistic coin cursor and scratch sound
-- 70% auto-reveal calculated per scratch field
-- fanfare + confetti when all required fields are revealed
-- word-only, picture+word, and picture-only modes
-- import your own word base from TXT / CSV / TSV
+- very short words stretch almost across the full scratch field
+- coin scratch sound
+- fanfare + confetti on reveal
+- auto-reveal when 70% of the scratch area is cleared
+- word / picture+word / picture-only modes
+- import your own word list from TXT / CSV / TSV
+
+## Note
+The in-page picture picker uses Wikimedia Commons search because it works directly from a static GitHub Pages app without any API keys or cloud backend.

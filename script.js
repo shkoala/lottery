@@ -14,7 +14,6 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const shuffleToggle = document.getElementById('shuffleToggle');
 const progressTitle = document.getElementById('progressTitle');
 const stage = document.getElementById('stage');
-const ticket = document.getElementById('ticket');
 const ticketContent = document.getElementById('ticketContent');
 const picturePanel = document.getElementById('picturePanel');
 const wordPanel = document.getElementById('wordPanel');
@@ -24,14 +23,24 @@ const showWordBtn = document.getElementById('showWordBtn');
 const scratchCanvas = document.getElementById('scratchCanvas');
 const confettiCanvas = document.getElementById('confettiCanvas');
 const confettiCtx = confettiCanvas.getContext('2d');
-const yandexStyleSelect = document.getElementById('yandexStyleSelect');
+const imageStyleSelect = document.getElementById('imageStyleSelect');
+const autoFillAllBtn = document.getElementById('autoFillAllBtn');
+const searchStatus = document.getElementById('searchStatus');
+const modal = document.getElementById('imageModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalSearchInput = document.getElementById('modalSearchInput');
+const modalSearchBtn = document.getElementById('modalSearchBtn');
+const modalResults = document.getElementById('modalResults');
+const modalMessage = document.getElementById('modalMessage');
+const modalTitle = document.getElementById('modalTitle');
 const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
 const ctx = scratchCanvas.getContext('2d', { willReadFrequently: true });
 
-const STORAGE_KEY = 'scratch_speak_lottery_v3';
+const STORAGE_KEY = 'scratch_speak_lottery_v5';
 const demoWords = ['dog', 'apple', 'holiday', 'music', 'teacher', 'banana'];
 const AUTO_REVEAL_THRESHOLD = 70;
-const COIN_CURSOR = `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='92' height='92' viewBox='0 0 92 92'><defs><radialGradient id='g' cx='32%' cy='28%'><stop offset='0' stop-color='#fffbe0'/><stop offset='.28' stop-color='#ffe57b'/><stop offset='.63' stop-color='#ffc92f'/><stop offset='1' stop-color='#b77700'/></radialGradient><filter id='s'><feDropShadow dx='0' dy='4' stdDeviation='3' flood-opacity='.35'/></filter></defs><circle cx='46' cy='46' r='33' fill='url(#g)' stroke='#9d6200' stroke-width='4' filter='url(#s)'/><circle cx='46' cy='46' r='26' fill='none' stroke='rgba(255,255,255,.5)' stroke-width='2'/><path d='M27 38c10-12 29-15 41-5' stroke='rgba(255,255,255,.52)' stroke-width='4' fill='none' stroke-linecap='round'/><text x='46' y='57' text-anchor='middle' font-size='31' font-family='Arial' font-weight='700' fill='#875300'>₵</text></svg>`)}") 28 28, auto`;
+const COMMONS_API = 'https://commons.wikimedia.org/w/api.php';
+const COIN_CURSOR = `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='78' height='78' viewBox='0 0 78 78'><defs><radialGradient id='g' cx='35%' cy='35%'><stop offset='0' stop-color='#fff7bf'/><stop offset='0.55' stop-color='#ffd24d'/><stop offset='1' stop-color='#ca9418'/></radialGradient></defs><circle cx='39' cy='39' r='28' fill='url(#g)' stroke='#a36c00' stroke-width='4'/><circle cx='39' cy='39' r='22' fill='none' stroke='rgba(255,255,255,.45)' stroke-width='2'/><text x='39' y='48' text-anchor='middle' font-size='26' font-family='Arial' font-weight='700' fill='#8f5a00'>₵</text></svg>`)}") 24 24, auto`;
 
 let cards = [];
 let deck = [];
@@ -41,17 +50,18 @@ let revealedEnough = false;
 let mode = 'word';
 let audioContext = null;
 let lastScratchAt = 0;
-let scratchFields = [];
 let confettiParticles = [];
 let confettiAnimating = false;
+let modalRowTarget = null;
+let scratchRects = [];
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     wordsText: wordsInput.value,
     mode: getMode(),
     shuffle: shuffleToggle.checked,
+    imageStyle: imageStyleSelect.value,
     images: gatherImageState(),
-    yandexStyle: yandexStyleSelect?.value || 'illustration'
   }));
 }
 
@@ -70,7 +80,7 @@ function loadState() {
       if (input) input.checked = true;
     }
     shuffleToggle.checked = data.shuffle ?? true;
-    if (yandexStyleSelect) yandexStyleSelect.value = data.yandexStyle || 'illustration';
+    imageStyleSelect.value = data.imageStyle || 'illustration';
     refreshModeStyles();
     buildImageRows(data.images || []);
   } catch {
@@ -98,6 +108,15 @@ function parseWords() {
   return parseWordsFromText(wordsInput.value);
 }
 
+function makeButton(text, className, onClick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = className;
+  btn.textContent = text;
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
 function buildImageRows(existing = []) {
   const words = parseWords();
   if (!words.length) {
@@ -113,7 +132,6 @@ function buildImageRows(existing = []) {
   words.forEach(word => {
     const row = document.createElement('div');
     row.className = 'image-row';
-    row.dataset.word = word;
 
     const wordInput = document.createElement('input');
     wordInput.className = 'image-word-input';
@@ -130,27 +148,48 @@ function buildImageRows(existing = []) {
     urlInput.placeholder = 'Image URL (optional)';
 
     const tools = document.createElement('div');
-    tools.className = 'yandex-result-tools';
+    tools.className = 'row-tools';
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.hidden = true;
 
-    const uploadBtn = makeButton('Upload', 'mini-btn');
-    uploadBtn.addEventListener('click', () => fileInput.click());
+    function setPreview(src) {
+      if (src) {
+        preview.dataset.src = src;
+        preview.innerHTML = `<img src="${src}" alt="${word}">`;
+      } else {
+        delete preview.dataset.src;
+        preview.textContent = 'No image';
+      }
+      saveState();
+    }
 
-    const urlBtn = makeButton('Use URL', 'mini-btn');
-    urlBtn.addEventListener('click', () => {
+    const searchBtn = makeButton('Search', 'mini-btn gold-btn', () => openImageModal(row, word));
+    const autoBtn = makeButton('Auto', 'mini-btn gold-btn', async () => {
+      setStatus(`Searching picture for ${word}...`);
+      autoBtn.disabled = true;
+      try {
+        const results = await searchImages(word);
+        if (!results.length) {
+          setStatus(`No picture found for ${word}.`);
+        } else {
+          setPreview(results[0].thumb || results[0].url);
+          setStatus(`Picture added for ${word}.`);
+        }
+      } catch (e) {
+        setStatus(`Could not get a picture for ${word}.`);
+      } finally {
+        autoBtn.disabled = false;
+      }
+    });
+    const uploadBtn = makeButton('Upload', 'mini-btn', () => fileInput.click());
+    const urlBtn = makeButton('Use URL', 'mini-btn', () => {
       const src = urlInput.value.trim();
       if (src) setPreview(src);
     });
-
-    const yandexBtn = makeButton('Find in Yandex', 'mini-btn yandex-btn');
-    yandexBtn.addEventListener('click', () => openYandexImageSearch(word));
-
-    const clearImageBtn = makeButton('Clear', 'mini-btn');
-    clearImageBtn.addEventListener('click', () => {
+    const clearImageBtn = makeButton('Clear', 'mini-btn', () => {
       urlInput.value = '';
       setPreview('');
     });
@@ -160,42 +199,24 @@ function buildImageRows(existing = []) {
       if (!file) return;
       const src = await readFileAsDataUrl(file);
       setPreview(src);
+      setStatus(`Picture uploaded for ${word}.`);
     });
 
-    function setPreview(src) {
-      if (src) {
-        preview.dataset.src = src;
-        preview.innerHTML = `<img src="${src}" alt="${escapeHtml(word)}">`;
-        if (/^https?:/i.test(src)) urlInput.value = src;
-      } else {
-        delete preview.dataset.src;
-        preview.textContent = 'No image';
-      }
-      saveState();
-    }
-
-    row._setPreview = setPreview;
+    row.setImage = setPreview;
+    row.word = word;
+    row.previewBox = preview;
 
     const existingItem = savedMap.get(word.toLowerCase());
-    if (existingItem?.imageSrc) setPreview(existingItem.imageSrc);
+    if (existingItem?.imageSrc) {
+      setPreview(existingItem.imageSrc);
+      if (/^https?:/i.test(existingItem.imageSrc)) urlInput.value = existingItem.imageSrc;
+    }
 
-    tools.append(yandexBtn, uploadBtn, urlBtn, clearImageBtn, fileInput);
+    tools.append(searchBtn, autoBtn, uploadBtn, urlBtn, clearImageBtn, fileInput);
     row.append(wordInput, preview, urlInput, tools);
     imageRows.appendChild(row);
   });
   saveState();
-}
-
-function makeButton(text, classes) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = classes;
-  b.textContent = text;
-  return b;
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
 
 function gatherImageState() {
@@ -221,6 +242,152 @@ function shuffled(arr) {
   return copy;
 }
 
+function setStatus(message) {
+  searchStatus.textContent = message;
+}
+
+function buildSearchQuery(word) {
+  const style = imageStyleSelect.value;
+  if (style === 'illustration') return `${word} drawing cartoon illustration`;
+  if (style === 'photo') return `${word} photograph`;
+  return word;
+}
+
+async function searchImages(word) {
+  const query = buildSearchQuery(word);
+  const params = new URLSearchParams({
+    origin: '*',
+    action: 'query',
+    generator: 'search',
+    gsrsearch: query,
+    gsrnamespace: '6',
+    gsrlimit: '16',
+    prop: 'imageinfo',
+    iiprop: 'url',
+    iiurlwidth: '400',
+    format: 'json'
+  });
+  const res = await fetch(`${COMMONS_API}?${params.toString()}`);
+  if (!res.ok) throw new Error('Search failed');
+  const data = await res.json();
+  const pages = Object.values(data.query?.pages || {});
+  const results = pages
+    .map(page => {
+      const info = page.imageinfo?.[0];
+      return {
+        title: page.title?.replace(/^File:/, '') || 'Untitled',
+        url: info?.url || '',
+        thumb: info?.thumburl || info?.url || ''
+      };
+    })
+    .filter(item => item.thumb || item.url)
+    .filter(item => !/\.svg($|\?)/i.test(item.url));
+  return results;
+}
+
+function openImageModal(row, word) {
+  modalRowTarget = row;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  modalTitle.textContent = `Choose a picture for “${word}”`;
+  modalSearchInput.value = buildSearchQuery(word);
+  modalResults.innerHTML = '';
+  modalMessage.textContent = 'Loading pictures...';
+  fetchModalResults();
+}
+
+function closeImageModal() {
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  modalRowTarget = null;
+}
+
+async function fetchModalResults() {
+  const rawQuery = modalSearchInput.value.trim();
+  if (!rawQuery) return;
+  modalResults.innerHTML = '';
+  modalMessage.textContent = 'Loading pictures...';
+  try {
+    const params = new URLSearchParams({
+      origin: '*',
+      action: 'query',
+      generator: 'search',
+      gsrsearch: rawQuery,
+      gsrnamespace: '6',
+      gsrlimit: '20',
+      prop: 'imageinfo',
+      iiprop: 'url',
+      iiurlwidth: '400',
+      format: 'json'
+    });
+    const res = await fetch(`${COMMONS_API}?${params.toString()}`);
+    if (!res.ok) throw new Error('Search failed');
+    const data = await res.json();
+    const pages = Object.values(data.query?.pages || {});
+    const results = pages
+      .map(page => {
+        const info = page.imageinfo?.[0];
+        return {
+          title: page.title?.replace(/^File:/, '') || 'Untitled',
+          url: info?.url || '',
+          thumb: info?.thumburl || info?.url || ''
+        };
+      })
+      .filter(item => item.thumb || item.url)
+      .filter(item => !/\.svg($|\?)/i.test(item.url));
+
+    if (!results.length) {
+      modalMessage.textContent = 'No pictures found. Try another word.';
+      return;
+    }
+
+    modalMessage.textContent = 'Click a picture to insert it automatically.';
+    results.forEach(item => {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'result-tile';
+      tile.innerHTML = `<div class="result-thumb"><img src="${item.thumb}" alt="${item.title}"></div><div class="result-caption">${item.title}</div>`;
+      tile.addEventListener('click', () => {
+        if (modalRowTarget?.setImage) {
+          modalRowTarget.setImage(item.thumb || item.url);
+          setStatus(`Picture inserted for ${modalRowTarget.word}.`);
+        }
+        closeImageModal();
+      });
+      modalResults.appendChild(tile);
+    });
+  } catch (e) {
+    modalMessage.textContent = 'Could not load pictures right now.';
+  }
+}
+
+async function autoFillAllImages() {
+  const rows = Array.from(document.querySelectorAll('.image-row'));
+  if (!rows.length) return;
+  autoFillAllBtn.disabled = true;
+  let ok = 0;
+  let miss = 0;
+  for (const row of rows) {
+    const existing = row.previewBox?.dataset?.src;
+    if (existing) continue;
+    setStatus(`Searching picture for ${row.word}...`);
+    try {
+      const results = await searchImages(row.word);
+      if (results.length) {
+        row.setImage(results[0].thumb || results[0].url);
+        ok += 1;
+      } else {
+        miss += 1;
+      }
+    } catch {
+      miss += 1;
+    }
+    await new Promise(r => setTimeout(r, 180));
+  }
+  setStatus(`Auto-fill finished: ${ok} added, ${miss} missed.`);
+  autoFillAllBtn.disabled = false;
+}
+
 function startGame() {
   mode = getMode();
   cards = buildCards();
@@ -240,10 +407,7 @@ function loadNextCard() {
   usedCount = (usedCount % cards.length) + 1;
   progressTitle.textContent = `Ticket ${usedCount} / ${cards.length}`;
   renderCurrent();
-  requestAnimationFrame(() => {
-    prepareScratchSurface();
-    fitWord();
-  });
+  prepareScratchSurface();
   revealedEnough = false;
   nextBtn.disabled = true;
 }
@@ -253,7 +417,6 @@ function renderCurrent() {
   const hasPicture = mode !== 'word';
   picturePanel.classList.toggle('hidden', !hasPicture);
   showWordBtn.classList.toggle('hidden', mode !== 'picture');
-  wordPanel.classList.remove('hidden');
 
   if (mode === 'word') {
     ticketContent.className = 'ticket-content word-layout';
@@ -270,50 +433,49 @@ function renderCurrent() {
     resultWord.classList.add('hidden');
     resultImage.src = current.imageSrc;
   }
+
+  requestAnimationFrame(() => fitWord());
 }
 
-async function fitWord() {
-  await document.fonts?.ready;
+function fitWord() {
   const text = (current?.word || '').trim();
   if (!text || resultWord.classList.contains('hidden')) return;
+  const box = wordPanel;
+  const availableWidth = box.clientWidth - 18;
+  const availableHeight = box.clientHeight - 18;
+  if (availableWidth <= 0 || availableHeight <= 0) return;
 
-  const boxWidth = Math.max(80, wordPanel.clientWidth - 36);
-  const boxHeight = Math.max(70, wordPanel.clientHeight - 28);
-  const isShortSingle = mode === 'word' && !/\s/.test(text) && text.length <= 8;
-  const oneLine = !/\s/.test(text) || text.length <= 15;
+  let size = mode === 'word' ? Math.min(availableWidth * 0.92, availableHeight * 0.95, 270) : Math.min(availableWidth * 0.6, availableHeight * 0.55, 150);
+  if (mode === 'word' && text.length <= 4) size = Math.min(availableWidth * 1.16, availableHeight * 1.02, 340);
+  if (mode === 'word' && text.length <= 3) size = Math.min(availableWidth * 1.26, availableHeight * 1.08, 380);
+  if (text.length >= 12) size *= 0.88;
+  if (text.length >= 18) size *= 0.79;
+  if (text.length >= 26) size *= 0.72;
+  resultWord.style.fontSize = `${Math.max(24, size)}px`;
 
-  resultWord.style.transform = 'scaleX(1)';
-  resultWord.style.transformOrigin = 'center center';
-  resultWord.style.whiteSpace = oneLine ? 'nowrap' : 'normal';
-  resultWord.style.width = oneLine ? 'auto' : '100%';
-  resultWord.style.maxWidth = '100%';
-  resultWord.style.lineHeight = oneLine ? '.86' : '.94';
-
-  let low = 20;
-  let high = mode === 'word' ? 360 : 220;
-  let best = low;
-
-  for (let i = 0; i < 12; i++) {
-    const mid = (low + high) / 2;
-    resultWord.style.fontSize = `${mid}px`;
-    const r = resultWord.getBoundingClientRect();
-    if (r.width <= boxWidth * 0.98 && r.height <= boxHeight * 0.94) {
-      best = mid;
-      low = mid;
-    } else {
-      high = mid;
+  let loops = 0;
+  while ((resultWord.scrollWidth > availableWidth || resultWord.scrollHeight > availableHeight) && loops < 140) {
+    size -= 2;
+    resultWord.style.fontSize = `${Math.max(20, size)}px`;
+    loops++;
+  }
+  loops = 0;
+  while (mode === 'word' && resultWord.scrollWidth < availableWidth * 0.92 && resultWord.scrollHeight < availableHeight * 0.92 && size < 380 && loops < 120) {
+    size += 2;
+    resultWord.style.fontSize = `${size}px`;
+    if (resultWord.scrollWidth > availableWidth || resultWord.scrollHeight > availableHeight) {
+      size -= 2;
+      resultWord.style.fontSize = `${size}px`;
+      break;
     }
+    loops++;
   }
 
-  resultWord.style.fontSize = `${best}px`;
-
-  if (isShortSingle) {
-    const r = resultWord.getBoundingClientRect();
-    if (r.width > 0) {
-      const target = boxWidth * 0.96;
-      const scaleX = Math.min(1.9, Math.max(1, target / r.width));
-      resultWord.style.transform = `scaleX(${scaleX})`;
-    }
+  if (mode === 'word' && text.length <= 5) {
+    const ratio = Math.min(1.45, Math.max(1, (availableWidth * 0.96) / Math.max(resultWord.scrollWidth, 1)));
+    resultWord.style.transform = `translateY(-2px) scaleX(${ratio})`;
+  } else {
+    resultWord.style.transform = 'translateY(-2px) scaleX(1)';
   }
 }
 
@@ -325,65 +487,61 @@ function prepareScratchSurface() {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr, dpr);
   ctx.clearRect(0,0,rect.width,rect.height);
-  scratchFields = [];
+  ctx.save();
+  roundRect(ctx, 0, 0, rect.width, rect.height, 30);
+  ctx.clip();
 
+  scratchRects = [];
   if (mode === 'word') {
-    addScratchField(wordPanel, 'word');
-  } else if (mode === 'picture-word') {
-    addScratchField(picturePanel, 'picture');
-    addScratchField(wordPanel, 'word');
+    const field = { x: 26, y: 70, w: rect.width - 52, h: rect.height - 128 };
+    drawScratchField(field);
+    scratchRects.push(field);
   } else {
-    addScratchField(picturePanel, 'picture');
+    const innerX = 24;
+    const innerY = 72;
+    const innerW = rect.width - 48;
+    const innerH = rect.height - 128;
+    const gap = 18;
+    const picW = innerW * 0.43;
+    const wordW = innerW - picW - gap;
+    const field1 = { x: innerX, y: innerY, w: picW, h: innerH };
+    const field2 = { x: innerX + picW + gap, y: innerY, w: wordW, h: innerH };
+    drawScratchField(field1);
+    drawScratchField(field2);
+    scratchRects.push(field1, field2);
   }
-
+  ctx.restore();
   scratchCanvas.style.cursor = COIN_CURSOR;
-}
-
-function addScratchField(element, type) {
-  const ticketRect = ticket.getBoundingClientRect();
-  const elRect = element.getBoundingClientRect();
-  const rect = {
-    x: elRect.left - ticketRect.left,
-    y: elRect.top - ticketRect.top,
-    w: elRect.width,
-    h: elRect.height
-  };
-  scratchFields.push({ type, rect, revealed: false });
-  drawScratchField(rect);
 }
 
 function drawScratchField({x,y,w,h}) {
   const silver = ctx.createLinearGradient(x, y, x + w, y + h);
-  silver.addColorStop(0, '#8f9bb2');
-  silver.addColorStop(.12, '#f5f7fb');
-  silver.addColorStop(.28, '#bac4d5');
-  silver.addColorStop(.47, '#ffffff');
-  silver.addColorStop(.65, '#c8d0dd');
-  silver.addColorStop(.84, '#eef2f8');
-  silver.addColorStop(1, '#8f9bb2');
-
+  silver.addColorStop(0, '#99a5bc');
+  silver.addColorStop(.14, '#eff3fb');
+  silver.addColorStop(.3, '#cad2e0');
+  silver.addColorStop(.48, '#f9fbff');
+  silver.addColorStop(.72, '#bcc7d9');
+  silver.addColorStop(1, '#939eb4');
   roundRect(ctx, x, y, w, h, 24);
   ctx.fillStyle = silver;
   ctx.fill();
-
   ctx.save();
   roundRect(ctx, x, y, w, h, 24);
   ctx.clip();
-  ctx.globalAlpha = .2;
-  for (let i = 0; i < 28; i++) {
-    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.5)' : 'rgba(85,98,120,.12)';
-    ctx.fillRect(x - 20 + i * (w / 16), y, 12, h);
+  ctx.globalAlpha = .26;
+  for (let i = 0; i < 22; i++) {
+    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.42)' : 'rgba(255,255,255,.12)';
+    ctx.fillRect(x - 20 + i * (w / 12), y, 18, h);
   }
-  ctx.globalAlpha = .2;
-  for (let i = 0; i < 260; i++) {
-    ctx.fillStyle = i % 5 ? 'rgba(255,255,255,.45)' : 'rgba(90,102,122,.35)';
+  ctx.globalAlpha = .18;
+  for (let i = 0; i < 220; i++) {
+    ctx.fillStyle = i % 4 ? 'rgba(255,255,255,.35)' : 'rgba(120,128,145,.28)';
     ctx.beginPath();
-    ctx.arc(x + Math.random() * w, y + Math.random() * h, Math.random() * 1.8 + .25, 0, Math.PI * 2);
+    ctx.arc(x + Math.random() * w, y + Math.random() * h, Math.random() * 2 + .3, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
-
-  ctx.strokeStyle = 'rgba(100,112,137,.48)';
+  ctx.strokeStyle = 'rgba(120,132,159,.45)';
   ctx.lineWidth = 2;
   roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 24);
   ctx.stroke();
@@ -403,14 +561,10 @@ function scratchAt(ev) {
   const rect = scratchCanvas.getBoundingClientRect();
   const x = ev.clientX - rect.left;
   const y = ev.clientY - rect.top;
-  const activeField = scratchFields.find(f => pointInRect(x, y, f.rect) && !f.revealed);
-  if (!activeField) return;
-
-  const size = Math.max(48, rect.width * .033);
+  const size = Math.max(46, rect.width * .03);
   ctx.globalCompositeOperation = 'destination-out';
   const grad = ctx.createRadialGradient(x, y, size * .22, x, y, size);
   grad.addColorStop(0, 'rgba(0,0,0,1)');
-  grad.addColorStop(.78, 'rgba(0,0,0,.92)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -419,114 +573,32 @@ function scratchAt(ev) {
   playScratchSound();
 }
 
-function pointInRect(x, y, r) {
-  return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-}
-
-function checkReveal() {
-  if (revealedEnough) return;
-  let changed = false;
-  for (const field of scratchFields) {
-    if (field.revealed) continue;
-    const pct = fieldRevealPercent(field.rect);
-    if (pct >= AUTO_REVEAL_THRESHOLD) {
-      clearScratchField(field.rect);
-      field.revealed = true;
-      changed = true;
-    }
-  }
-  if (changed && scratchFields.every(f => f.revealed)) celebrateReveal();
-}
-
-function fieldRevealPercent(r) {
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  const data = ctx.getImageData(
-    Math.max(0, Math.floor(r.x * dpr)),
-    Math.max(0, Math.floor(r.y * dpr)),
-    Math.max(1, Math.floor(r.w * dpr)),
-    Math.max(1, Math.floor(r.h * dpr))
-  ).data;
-  let clear = 0;
-  let total = 0;
-  for (let i = 3; i < data.length; i += 48) {
-    total++;
-    if (data[i] < 30) clear++;
-  }
-  return total ? (clear / total) * 100 : 0;
-}
-
-function clearScratchField(r) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.clearRect(r.x - 3, r.y - 3, r.w + 6, r.h + 6);
-  ctx.restore();
-}
-
-function revealAll() {
-  if (revealedEnough) return;
-  scratchFields.forEach(field => {
-    if (!field.revealed) clearScratchField(field.rect);
-    field.revealed = true;
-  });
-  celebrateReveal();
-}
-
-function celebrateReveal() {
-  if (revealedEnough) return;
-  revealedEnough = true;
-  if (mode === 'picture') {
-    resultWord.textContent = current?.word || '';
-    resultWord.classList.remove('hidden');
-    showWordBtn.classList.add('hidden');
-    fitWord();
-  }
-  nextBtn.disabled = false;
-  fireConfetti();
-  playFanfare();
-}
-
 function getAudio() {
   if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
   return audioContext;
 }
 
 function playScratchSound() {
-  const nowMs = performance.now();
-  if (nowMs - lastScratchAt < 48) return;
-  lastScratchAt = nowMs;
+  const now = performance.now();
+  if (now - lastScratchAt < 55) return;
+  lastScratchAt = now;
   const ac = getAudio();
-  const now = ac.currentTime;
-
-  const duration = 0.055;
-  const bufferSize = Math.floor(ac.sampleRate * duration);
+  const bufferSize = Math.floor(ac.sampleRate * 0.05);
   const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    const decay = 1 - i / bufferSize;
-    data[i] = (Math.random() * 2 - 1) * decay * 0.42;
-  }
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize) * 0.35;
   const noise = ac.createBufferSource();
   noise.buffer = buffer;
-  const band = ac.createBiquadFilter();
-  band.type = 'bandpass';
-  band.frequency.value = 1550 + Math.random() * 500;
-  band.Q.value = 0.75;
+  const filter = ac.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1200;
+  filter.Q.value = 0.7;
   const gain = ac.createGain();
-  gain.gain.setValueAtTime(0.035, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-  noise.connect(band).connect(gain).connect(ac.destination);
-  noise.start(now);
-  noise.stop(now + duration);
-
-  const metal = ac.createOscillator();
-  const mg = ac.createGain();
-  metal.type = 'sine';
-  metal.frequency.setValueAtTime(2400 + Math.random() * 350, now);
-  mg.gain.setValueAtTime(0.009, now);
-  mg.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
-  metal.connect(mg).connect(ac.destination);
-  metal.start(now);
-  metal.stop(now + 0.04);
+  gain.gain.setValueAtTime(0.028, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.06);
+  noise.connect(filter).connect(gain).connect(ac.destination);
+  noise.start();
+  noise.stop(ac.currentTime + 0.06);
 }
 
 function playFanfare() {
@@ -537,13 +609,13 @@ function playFanfare() {
     const osc = ac.createOscillator();
     const gain = ac.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(freq, now + i * 0.105);
-    gain.gain.setValueAtTime(0.0001, now + i * 0.105);
-    gain.gain.linearRampToValueAtTime(0.07, now + i * 0.105 + 0.018);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.105 + 0.28);
+    osc.frequency.setValueAtTime(freq, now + i * 0.11);
+    gain.gain.setValueAtTime(0.0001, now + i * 0.11);
+    gain.gain.linearRampToValueAtTime(0.07, now + i * 0.11 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.11 + 0.25);
     osc.connect(gain).connect(ac.destination);
-    osc.start(now + i * 0.105);
-    osc.stop(now + i * 0.105 + 0.3);
+    osc.start(now + i * 0.11);
+    osc.stop(now + i * 0.11 + 0.28);
   });
 }
 
@@ -554,16 +626,16 @@ function fireConfetti() {
   confettiCanvas.height = window.innerHeight * dpr;
   confettiCtx.setTransform(1,0,0,1,0,0);
   confettiCtx.scale(dpr, dpr);
-  confettiParticles = Array.from({ length: 160 }, () => ({
+  confettiParticles = Array.from({ length: 150 }, () => ({
     x: window.innerWidth / 2 + (Math.random() * 220 - 110),
-    y: window.innerHeight * 0.24 + (Math.random() * 20 - 10),
+    y: window.innerHeight * 0.25 + (Math.random() * 20 - 10),
     vx: Math.random() * 8 - 4,
-    vy: Math.random() * -8.5 - 2,
+    vy: Math.random() * -8 - 2,
     size: Math.random() * 8 + 5,
     rot: Math.random() * Math.PI,
     vr: Math.random() * 0.3 - 0.15,
     color: ['#6f56f8','#04b7ff','#ffd764','#ff7f7f','#7af0b0'][Math.floor(Math.random()*5)],
-    life: 84 + Math.random() * 24,
+    life: 80 + Math.random() * 24,
   }));
   if (!confettiAnimating) animateConfetti();
 }
@@ -593,17 +665,43 @@ function animateConfetti() {
   }
 }
 
-function buildYandexQuery(word) {
-  const style = yandexStyleSelect?.value || 'illustration';
-  if (style === 'photo') return `${word} photo`;
-  if (style === 'illustration') return `${word} illustration`;
-  return word;
+function autoRevealAndCelebrate() {
+  if (revealedEnough) return;
+  revealedEnough = true;
+  if (mode === 'picture') {
+    resultWord.textContent = current?.word || '';
+    resultWord.classList.remove('hidden');
+    showWordBtn.classList.add('hidden');
+    fitWord();
+  }
+  const rect = scratchCanvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  nextBtn.disabled = false;
+  fireConfetti();
+  playFanfare();
 }
 
-function openYandexImageSearch(word) {
-  const query = buildYandexQuery(word);
-  const url = `https://yandex.ru/images/search?text=${encodeURIComponent(query)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+function getRevealedPercent() {
+  if (!scratchRects.length) return 0;
+  let clearPixels = 0;
+  let total = 0;
+  for (const r of scratchRects) {
+    const img = ctx.getImageData(Math.floor(r.x), Math.floor(r.y), Math.max(1, Math.floor(r.w)), Math.max(1, Math.floor(r.h))).data;
+    for (let i = 3; i < img.length; i += 24) {
+      total++;
+      if (img[i] < 30) clearPixels++;
+    }
+  }
+  return total ? (clearPixels / total) * 100 : 0;
+}
+
+function checkReveal() {
+  if (revealedEnough) return;
+  if (getRevealedPercent() >= AUTO_REVEAL_THRESHOLD) autoRevealAndCelebrate();
+}
+
+function revealAll() {
+  autoRevealAndCelebrate();
 }
 
 function importWordsFile(file) {
@@ -652,6 +750,7 @@ importWordsInput.addEventListener('change', e => {
   if (file) importWordsFile(file);
 });
 buildImageRowsBtn.addEventListener('click', () => buildImageRows(gatherImageState()));
+autoFillAllBtn.addEventListener('click', autoFillAllImages);
 startBtn.addEventListener('click', startGame);
 backBtn.addEventListener('click', exitToSettings);
 restartBtn.addEventListener('click', restartDeck);
@@ -664,11 +763,16 @@ showWordBtn.addEventListener('click', () => {
   showWordBtn.classList.add('hidden');
   fitWord();
 });
+closeModalBtn.addEventListener('click', closeImageModal);
+modal.querySelector('[data-close-modal]').addEventListener('click', closeImageModal);
+modalSearchBtn.addEventListener('click', fetchModalResults);
+modalSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchModalResults(); });
 wordsInput.addEventListener('input', saveState);
 shuffleToggle.addEventListener('change', saveState);
+imageStyleSelect.addEventListener('change', saveState);
 modeInputs.forEach(input => input.addEventListener('change', () => { refreshModeStyles(); saveState(); }));
-yandexStyleSelect?.addEventListener('change', saveState);
 window.addEventListener('resize', () => { if (gameScreen.classList.contains('active')) { prepareScratchSurface(); fitWord(); } });
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeImageModal(); });
 
 let isDown = false;
 scratchCanvas.addEventListener('pointerdown', e => { isDown = true; scratchAt(e); checkReveal(); });
