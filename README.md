@@ -1,20 +1,23 @@
-# Scratch & Speak — Lottery Edition v5
+# Scratch & Speak — Lottery Edition v12
 
-## New in v5
-- built-in picture picker inside the page
-- click **Search** → a small modal opens with picture results
-- click any picture → it is inserted automatically into the row
-- **Auto** button for a single word: inserts the first found picture automatically
-- **Auto-fill all**: tries to add pictures for all words automatically
+## New in v12
+- **Teacher mode** and **Kids mode** for display
+- **Class view** button: switches to Kids mode and opens fullscreen
+- even larger word display in Kids mode
+- previous v11 improvements are preserved
 
-## Other features
-- large adaptive words
-- very short words stretch almost across the full scratch field
-- coin scratch sound
-- fanfare + confetti on reveal
-- auto-reveal when 70% of the scratch area is cleared
-- word / picture+word / picture-only modes
-- import your own word list from TXT / CSV / TSV
+## What the different modes mean
+- **Teacher mode**
+  - more balanced working view
+  - convenient while setting up the game, checking the list, restarting, switching options
+  - best when the teacher is controlling the game
 
-## Note
-The in-page picture picker uses Wikimedia Commons search because it works directly from a static GitHub Pages app without any API keys or cloud backend.
+- **Kids mode**
+  - cleaner presentation view
+  - larger word and bigger game area
+  - better for showing the ticket on the board or screen to the class
+
+- **Class view**
+  - a shortcut for presentation
+  - it turns on **Kids mode** and tries to open **fullscreen**
+  - best for whole-class work
