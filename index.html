@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Comic+Neue:wght@400;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=final7" rel="stylesheet"/>
+<link href="style.css?v=final9" rel="stylesheet"/>
 </head>
 <body>
 <main class="app-shell">
@@ -49,7 +49,6 @@
 <div class="card-head">
 <h2>Your words</h2>
 <div class="head-actions">
-<button class="mini-btn gold-btn" id="addWordBtn" type="button">＋ Add word</button>
 <button class="mini-btn" id="fillDemoBtn" type="button">Demo list</button>
 <label class="mini-btn file-label">Import .txt / .csv<input accept=".txt,.csv,.tsv" hidden="" id="importWordsInput" type="file"/></label>
 </div>
@@ -98,7 +97,7 @@ holiday" spellcheck="false"></textarea>
 </div>
 </div>
 <div class="card soft-card images-card">
-<div class="card-head"><div><h2>Pictures for picture modes</h2><p class="helper-text">Choose a row if you want to replace one picture.</p></div><div class="head-actions"><button class="mini-btn gold-btn" id="addWordPicturesBtn" type="button">＋ Add word</button><button class="mini-btn" id="buildImageRowsBtn" type="button">Refresh picture list</button></div></div>
+<div class="card-head"><div><h2>Pictures for picture modes</h2><p class="helper-text">Choose a row if you want to replace one picture.</p></div><div class="head-actions"><button class="mini-btn" id="buildImageRowsBtn" type="button">Refresh picture list</button></div></div>
 <div class="image-search-bar simplified-picture-tools">
 <select class="picture-style-select" hidden="" id="imageStyleSelect"><option selected="" value="illustration">Illustration</option><option value="photo">Photo</option><option value="any">Any</option></select>
 <button class="mini-btn our-pic-btn" id="builtinFillBtn" type="button">Use our pictures</button>
@@ -107,6 +106,11 @@ holiday" spellcheck="false"></textarea>
 <div class="search-status" id="searchStatus">Our pictures first. For another picture: select a row → Search Yandex → copy the image → return here and press Ctrl+V.</div>
 </div>
 <div class="image-rows empty-state-box" id="imageRows"><p>Add your words first, then click <strong>Refresh picture list</strong>.</p></div>
+<div class="word-row-manager">
+  <input id="quickWordInput" class="quick-word-input" type="text" placeholder="Add a word or phrase…" autocomplete="off" />
+  <button id="quickAddWordBtn" class="mini-btn gold-btn" type="button">＋ Add word</button>
+  <button id="deleteSelectedWordBtn" class="mini-btn danger-mini-btn" type="button">− Delete selected</button>
+</div>
 </div>
 <div class="setup-actions"><button class="primary-btn jumbo-btn glow-btn" id="startBtn" type="button">✨ Start lottery</button><button class="secondary-btn" id="introToggleBtn" type="button">Cole intro: ON</button><button class="secondary-btn" id="previewIntroBtn" type="button">▶ Preview Cole intro</button></div>
 </section>
@@ -206,6 +210,6 @@ holiday" spellcheck="false"></textarea>
 <div class="modal-results" id="modalResults"></div>
 </div>
 </div>
-<script src="script.js?v=final8"></script>
+<script src="script.js?v=final9"></script>
 </body>
 </html>
