@@ -4,6 +4,8 @@ const wordsInput=document.getElementById('wordsInput');
 const importWordsInput=document.getElementById('importWordsInput');
 const imageRows=document.getElementById('imageRows');
 const buildImageRowsBtn=document.getElementById('buildImageRowsBtn');
+const addWordBtn=document.getElementById('addWordBtn');
+const addWordPicturesBtn=document.getElementById('addWordPicturesBtn');
 const fillDemoBtn=document.getElementById('fillDemoBtn');
 const normalizeListBtn=document.getElementById('normalizeListBtn');
 const dedupeListBtn=document.getElementById('dedupeListBtn');
@@ -130,6 +132,41 @@ function makeButton(text,className,onClick){const btn=document.createElement('bu
 function setStatus(message){searchStatus.textContent=message;}
 function cacheKey(word){return `${word.toLowerCase()}|${imageStyleSelect.value}`;}
 function applyCategory(name){const words=presetCategories[name];if(!words)return;wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus(`Loaded ready solution: ${name}. Built-in pictures are filled first in picture modes.`);saveState();}
+function addWordInteractive(){
+  const raw=window.prompt('Add a word or phrase:');
+  if(raw===null)return;
+  const incoming=parseWordsFromText(raw);
+  if(!incoming.length)return;
+
+  const existing=parseWords();
+  const seen=new Set(existing.map(w=>w.toLowerCase()));
+  const added=[];
+  for(const word of incoming){
+    const key=word.toLowerCase();
+    if(seen.has(key))continue;
+    seen.add(key);
+    existing.push(word);
+    added.push(word);
+  }
+  if(!added.length){
+    setStatus('That word is already in the list.');
+    return;
+  }
+
+  const currentImages=gatherImageState();
+  wordsInput.value=existing.join('\n');
+  buildImageRows(currentImages);
+
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  const newRow=rows.find(r=>added.some(w=>w.toLowerCase()===String(r.word||'').toLowerCase()));
+  if(newRow){
+    selectImageRow(newRow);
+    newRow.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  setStatus(added.length===1 ? 'Added “'+added[0]+'”.' : 'Added '+added.length+' words.');
+  saveState();
+}
 function normalizeWordList(){const words=parseWords();wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('List normalized.');saveState();}
 function dedupeWordList(){const seen=new Set();const words=[];for(const w of parseWords()){const key=w.toLowerCase();if(seen.has(key))continue;seen.add(key);words.push(w);}wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Duplicate words removed.');saveState();}
 function sortWordList(){const words=parseWords().sort((a,b)=>a.localeCompare(b));wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Word list sorted A–Z.');saveState();}
@@ -354,6 +391,8 @@ sortListBtn.addEventListener('click',sortWordList);
 clearListBtn.addEventListener('click',clearWordList);
 importWordsInput.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)importWordsFile(file);});
 buildImageRowsBtn.addEventListener('click',()=>{const currentImages=gatherImageState();buildImageRows(currentImages);setStatus('Picture list refreshed. Current pictures were kept.');});
+addWordBtn?.addEventListener('click',addWordInteractive);
+addWordPicturesBtn?.addEventListener('click',addWordInteractive);
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
 autoFillAllBtn.addEventListener('click',searchSelectedImage);
 clearAllImagesBtn.addEventListener('click',clearAllImages);
