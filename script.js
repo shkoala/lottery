@@ -64,6 +64,14 @@ const modalMoreBtn=document.getElementById('modalMoreBtn');
 const modalResults=document.getElementById('modalResults');
 const modalMessage=document.getElementById('modalMessage');
 const modalTitle=document.getElementById('modalTitle');
+const cropModal=document.getElementById('cropModal');
+const cropBackdrop=document.getElementById('cropBackdrop');
+const cropCanvas=document.getElementById('cropCanvas');
+const cropZoom=document.getElementById('cropZoom');
+const cropFitBtn=document.getElementById('cropFitBtn');
+const cropCloseBtn=document.getElementById('cropCloseBtn');
+const cropCancelBtn=document.getElementById('cropCancelBtn');
+const cropApplyBtn=document.getElementById('cropApplyBtn');
 const introOverlay=document.getElementById('introOverlay');
 const introStage=document.getElementById('introStage');
 const skipIntroBtn=document.getElementById('skipIntroBtn');
@@ -227,6 +235,122 @@ function openYandexImages(word,styled=true){
       setStatus('Yandex window closed. Paste the copied picture with Ctrl+V.');
     }
   },450);
+}
+
+let cropRow=null;
+let cropImage=null;
+let cropScale=1;
+let cropBaseScale=1;
+let cropOffsetX=0;
+let cropOffsetY=0;
+let cropDragging=false;
+let cropLastX=0;
+let cropLastY=0;
+
+function cropCtx(){return cropCanvas?.getContext('2d');}
+
+function cropCanvasPoint(ev){
+  const rect=cropCanvas.getBoundingClientRect();
+  return {
+    x:(ev.clientX-rect.left)*(cropCanvas.width/rect.width),
+    y:(ev.clientY-rect.top)*(cropCanvas.height/rect.height)
+  };
+}
+
+function drawCropEditor(){
+  if(!cropCanvas||!cropImage)return;
+  const c=cropCtx();
+  const W=cropCanvas.width,H=cropCanvas.height;
+  c.clearRect(0,0,W,H);
+  c.fillStyle='#fff';
+  c.fillRect(0,0,W,H);
+
+  const scale=cropBaseScale*cropScale;
+  const dw=cropImage.naturalWidth*scale;
+  const dh=cropImage.naturalHeight*scale;
+  const x=(W-dw)/2+cropOffsetX;
+  const y=(H-dh)/2+cropOffsetY;
+
+  c.imageSmoothingEnabled=true;
+  c.imageSmoothingQuality='high';
+  c.drawImage(cropImage,x,y,dw,dh);
+
+  // crop-frame border
+  c.save();
+  c.strokeStyle='rgba(79,64,190,.78)';
+  c.lineWidth=5;
+  c.setLineDash([16,12]);
+  c.strokeRect(4,4,W-8,H-8);
+  c.setLineDash([]);
+  c.restore();
+}
+
+function fitCropImage(){
+  if(!cropImage||!cropCanvas)return;
+  const W=cropCanvas.width,H=cropCanvas.height;
+  // "Fit" shows the whole image; white background remains if needed.
+  cropBaseScale=Math.min(W/cropImage.naturalWidth,H/cropImage.naturalHeight);
+  cropScale=1;
+  cropOffsetX=0;
+  cropOffsetY=0;
+  if(cropZoom)cropZoom.value='100';
+  drawCropEditor();
+}
+
+function closeCropEditor(){
+  cropModal?.classList.add('hidden');
+  cropModal?.setAttribute('aria-hidden','true');
+  cropRow=null;
+  cropImage=null;
+  cropDragging=false;
+}
+
+function openCropEditor(row){
+  if(!row||!row.previewBox?.dataset?.src)return;
+  selectImageRow(row);
+
+  const src=row.previewBox.dataset.src;
+  const img=new Image();
+  cropRow=row;
+
+  img.onload=()=>{
+    cropImage=img;
+    cropModal?.classList.remove('hidden');
+    cropModal?.setAttribute('aria-hidden','false');
+    fitCropImage();
+  };
+
+  img.onerror=()=>{
+    cropRow=null;
+    cropImage=null;
+    setStatus('Could not open this picture for cropping.');
+  };
+
+  // Same-origin and pasted/uploaded data URLs crop cleanly.
+  if(/^https?:\/\//i.test(src) && !src.startsWith(location.origin)){
+    img.crossOrigin='anonymous';
+  }
+  img.src=src;
+}
+
+function applyCrop(){
+  if(!cropRow||!cropImage||!cropCanvas)return;
+  try{
+    const out=document.createElement('canvas');
+    out.width=720;
+    out.height=720;
+    const o=out.getContext('2d');
+    o.fillStyle='#fff';
+    o.fillRect(0,0,out.width,out.height);
+    o.drawImage(cropCanvas,0,0,out.width,out.height);
+    const src=out.toDataURL('image/png',0.96);
+    cropRow.setImage(src);
+    selectImageRow(cropRow);
+    setStatus('Cropped picture saved for “'+cropRow.word+'”.');
+    closeCropEditor();
+  }catch(err){
+    setStatus('This remote picture cannot be cropped directly. Copy the image itself and paste it with Ctrl+V, then crop it.');
+  }
 }
 
 function selectImageRow(row){
@@ -406,7 +530,7 @@ function buildImageRows(existing=[]){
       if(e.target.closest('button,input,label'))return;
       selectImageRow(row);
     });
-    preview.addEventListener('click',()=>selectImageRow(row));
+    preview.addEventListener('click',()=>{selectImageRow(row);if(preview.dataset.src)openCropEditor(row);});
     wordInput.addEventListener('click',()=>selectImageRow(row));
 
     const localSrc=builtinPictureForWord(word);
@@ -749,7 +873,48 @@ startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventLis
 showWordBtn.addEventListener('click',()=>{resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();});
 closeModalBtn.addEventListener('click',closeImageModal);modal.querySelector('[data-close-modal]').addEventListener('click',closeImageModal);
 modalSearchBtn.addEventListener('click',()=>{modalPage=1;fetchModalResults(true);});modalMoreBtn.addEventListener('click',()=>{modalPage+=1;fetchModalResults(true);});modalSearchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){modalPage=1;fetchModalResults(true);}});
-let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();clearTimeout(wordsRefreshTimer);wordsRefreshTimer=setTimeout(()=>buildImageRows(gatherImageState()),220);});shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))closeImageModal();});document.addEventListener('paste',pasteImageIntoSelectedRow);
+let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();clearTimeout(wordsRefreshTimer);wordsRefreshTimer=setTimeout(()=>buildImageRows(gatherImageState()),220);});shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(cropModal&&!cropModal.classList.contains('hidden')){closeCropEditor();return;}if(!modal.classList.contains('hidden'))closeImageModal();});cropCloseBtn?.addEventListener('click',closeCropEditor);
+cropCancelBtn?.addEventListener('click',closeCropEditor);
+cropBackdrop?.addEventListener('click',closeCropEditor);
+cropFitBtn?.addEventListener('click',fitCropImage);
+cropApplyBtn?.addEventListener('click',applyCrop);
+
+cropZoom?.addEventListener('input',()=>{
+  cropScale=Math.max(.25,Number(cropZoom.value||100)/100);
+  drawCropEditor();
+});
+
+cropCanvas?.addEventListener('pointerdown',ev=>{
+  if(!cropImage)return;
+  cropDragging=true;
+  cropCanvas.setPointerCapture?.(ev.pointerId);
+  const p=cropCanvasPoint(ev);
+  cropLastX=p.x;cropLastY=p.y;
+});
+cropCanvas?.addEventListener('pointermove',ev=>{
+  if(!cropDragging||!cropImage)return;
+  const p=cropCanvasPoint(ev);
+  cropOffsetX+=p.x-cropLastX;
+  cropOffsetY+=p.y-cropLastY;
+  cropLastX=p.x;cropLastY=p.y;
+  drawCropEditor();
+});
+cropCanvas?.addEventListener('pointerup',ev=>{
+  cropDragging=false;
+  cropCanvas.releasePointerCapture?.(ev.pointerId);
+});
+cropCanvas?.addEventListener('pointercancel',()=>{cropDragging=false;});
+cropCanvas?.addEventListener('wheel',ev=>{
+  if(!cropImage)return;
+  ev.preventDefault();
+  const delta=ev.deltaY<0?5:-5;
+  const next=Math.max(25,Math.min(300,Number(cropZoom.value||100)+delta));
+  cropZoom.value=String(next);
+  cropScale=next/100;
+  drawCropEditor();
+},{passive:false});
+
+document.addEventListener('paste',pasteImageIntoSelectedRow);
 let isDown=false;
 [pictureScratchCanvas,wordScratchCanvas].forEach(canvas=>{
   canvas.addEventListener('pointerdown',e=>{isDown=true;lastScratchPoint=null;scratchAt(e);checkReveal();});
