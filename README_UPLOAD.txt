@@ -1,21 +1,28 @@
-SHKOALA LOTTERY — FINAL
+SHKOALA LOTTERY — FINAL GITHUB PACKAGE
 
-ЗАГРУЗКА С НУЛЯ
-1. Очистите старый репозиторий lottery.
-2. Загрузите ВЕСЬ СОДЕРЖИМЫЙ этой папки в корень репозитория.
-3. В корне должны лежать index.html и папка assets.
-4. GitHub Pages: Branch main / root.
+ЗАГРУЗИТЕ В КОРЕНЬ РЕПОЗИТОРИЯ ВСЁ СОДЕРЖИМОЕ ЭТОЙ ПАПКИ:
 
-КАРТИНКИ
-assets/pictures/ — отдельные PNG 512×512, белый фон, БЕЗ слов.
-assets/picture-manifest.json — английские и русские ключи.
+index.html
+style.css
+script.js
+.nojekyll
+assets/
+    picture-manifest.json
+    pictures/
+        ...все PNG-картинки по папкам
+ASSET_PREVIEW.jpg
+README_UPLOAD.txt
 
-ПРИОРИТЕТ
-1. Наша база SHKOALA.
-2. Yandex · clipart — запрос под мультяшный клипарт, белый фон, без текста.
-3. Yandex · all — обычный поиск Яндекс.Картинок.
+ВАЖНО:
+1. index.html, style.css и script.js должны лежать НА ОДНОМ УРОВНЕ — в корне.
+2. Папку assets не переименовывать.
+3. В assets/pictures лежат реальные отдельные PNG без слов.
+4. Старые SVG и atlas-файлы не нужны.
+5. Логика картинок:
+   SHKOALA local pack -> Yandex clipart search -> Yandex all pictures.
+6. Русские и английские варианты слов прописаны в базе.
+7. У каждого учителя состояние игры хранится локально в его браузере:
+   несколько учителей могут пользоваться сайтом одновременно и не мешают друг другу.
 
-Никаких OAuth-токенов и платного API не нужно.
-
-ОДНОВРЕМЕННАЯ РАБОТА
-Сайт статический. Состояние каждого учителя хранится в его браузере, поэтому несколько учителей могут пользоваться сайтом одновременно и не мешают друг другу.
+GitHub Pages:
+Settings -> Pages -> Deploy from a branch -> main / root
