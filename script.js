@@ -114,7 +114,7 @@ function fillBuiltinPictures(){let added=0;document.querySelectorAll('.image-row
 
 const COIN_CURSOR=`url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='78' height='78' viewBox='0 0 78 78'><defs><radialGradient id='g' cx='35%' cy='35%'><stop offset='0' stop-color='#fff7bf'/><stop offset='0.55' stop-color='#ffd24d'/><stop offset='1' stop-color='#ca9418'/></radialGradient></defs><circle cx='39' cy='39' r='28' fill='url(#g)' stroke='#a36c00' stroke-width='4'/><circle cx='39' cy='39' r='22' fill='none' stroke='rgba(255,255,255,.45)' stroke-width='2'/><text x='39' y='48' text-anchor='middle' font-size='26' font-family='Arial' font-weight='700' fill='#8f5a00'>₵</text></svg>`)}") 24 24, auto`;
 
-let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null;
+let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null;
 const searchCache=new Map();
 const rowResultCaches=new Map();
 const rowResultIndices=new Map();
