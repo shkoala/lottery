@@ -4,6 +4,9 @@ const wordsInput=document.getElementById('wordsInput');
 const importWordsInput=document.getElementById('importWordsInput');
 const imageRows=document.getElementById('imageRows');
 const buildImageRowsBtn=document.getElementById('buildImageRowsBtn');
+const quickWordInput=document.getElementById('quickWordInput');
+const quickAddWordBtn=document.getElementById('quickAddWordBtn');
+const deleteSelectedWordBtn=document.getElementById('deleteSelectedWordBtn');
 const addWordBtn=document.getElementById('addWordBtn');
 const addWordPicturesBtn=document.getElementById('addWordPicturesBtn');
 const fillDemoBtn=document.getElementById('fillDemoBtn');
@@ -214,7 +217,62 @@ async function pasteImageIntoSelectedRow(e){
     e.preventDefault();selectedImageRow.setImage(pasted);setStatus(`Picture URL pasted for “${selectedImageRow.word}”.`);
   }
 }
-function buildImageRows(existing=[]){const words=parseWords();if(!words.length){imageRows.className='image-rows empty-state-box';imageRows.innerHTML='<p>Add your words first, then click <strong>Refresh picture list</strong>.</p>';saveState();return;}const savedMap=new Map(existing.map(item=>[item.word.toLowerCase(),item]));imageRows.className='image-rows';imageRows.innerHTML='';words.forEach(word=>{const row=document.createElement('div');row.className='image-row';const wordInput=document.createElement('input');wordInput.className='image-word-input';wordInput.value=word;wordInput.readOnly=true;const preview=document.createElement('div');preview.className='image-preview';preview.textContent='No image';const urlInput=document.createElement('input');urlInput.className='image-url-input';urlInput.type='url';urlInput.placeholder='Image URL (optional)';const tools=document.createElement('div');tools.className='row-tools';const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/*';fileInput.hidden=true;function setPreview(src){preview.innerHTML='';if(src){preview.dataset.src=src;preview.innerHTML=`<img src="${src}" alt="${escapeHtml(word)}">`;}else{delete preview.dataset.src;preview.textContent='No image';}saveState();}row.setImage=setPreview;row.word=word;row.previewBox=preview;row.addEventListener('click',()=>selectImageRow(row));preview.title='Click to select this word';const localSrc=builtinPictureForWord(word);const localBtn=localSrc?makeButton('Our picture','mini-btn our-pic-btn',()=>{row.setImage(localSrc);setStatus(`Picture added for ${word}.`);}):null;const styledBtn=makeButton('Yandex · clipart','mini-btn gold-btn',()=>{openYandexImages(word,true);setStatus(`Yandex opened with a clean clipart query for ${word}. Download or copy the picture URL, then use Upload / Use URL here.`);});const allBtn=makeButton('Yandex · all','mini-btn',()=>{openYandexImages(word,false);setStatus(`Yandex Images opened for ${word}.`);});const uploadBtn=makeButton('Upload','mini-btn',()=>fileInput.click());const urlBtn=makeButton('Use URL','mini-btn',()=>{const src=urlInput.value.trim();if(src)setPreview(src);});const clearBtn=makeButton('Clear','mini-btn',()=>{urlInput.value='';setPreview('');});fileInput.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const src=await readFileAsDataUrl(file);setPreview(src);setStatus(`Picture uploaded for ${word}.`);});const existingItem=savedMap.get(word.toLowerCase());if(existingItem?.imageSrc&&!String(existingItem.imageSrc).startsWith('builtin:')){setPreview(existingItem.imageSrc);if(/^https?:/i.test(existingItem.imageSrc))urlInput.value=existingItem.imageSrc;}else if(getMode()!=='word'&&localSrc){setPreview(localSrc);}if(localBtn)tools.append(localBtn);tools.append(styledBtn,allBtn,uploadBtn,urlBtn,clearBtn,fileInput);row.append(wordInput,preview,urlInput,tools);imageRows.appendChild(row);});if(!selectedImageRow||!document.body.contains(selectedImageRow))selectImageRow(document.querySelector('.image-row'));saveState();}
+function addWordsFromQuickPanel(){
+  const raw=(quickWordInput?.value||'').trim();
+  if(!raw)return;
+  const incoming=parseWordsFromText(raw);
+  if(!incoming.length)return;
+  const existing=parseWords();
+  const seen=new Set(existing.map(w=>w.toLowerCase()));
+  const added=[];
+  for(const word of incoming){
+    const key=word.toLowerCase();
+    if(seen.has(key))continue;
+    seen.add(key);
+    existing.push(word);
+    added.push(word);
+  }
+  if(!added.length){
+    setStatus('That word is already in the list.');
+    quickWordInput.select();
+    return;
+  }
+  const currentImages=gatherImageState();
+  wordsInput.value=existing.join('\n');
+  buildImageRows(currentImages);
+  quickWordInput.value='';
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  const newRow=rows[rows.length-1];
+  if(newRow){
+    selectImageRow(newRow);
+    newRow.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  setStatus(added.length===1 ? 'Added “'+added[0]+'”.' : 'Added '+added.length+' words.');
+  saveState();
+}
+
+function deleteWordRow(row){
+  if(!row)return;
+  const target=String(row.word||'').trim();
+  if(!target)return;
+  const currentImages=gatherImageState().filter(item=>item.word.toLowerCase()!==target.toLowerCase());
+  const words=parseWords().filter(w=>w.toLowerCase()!==target.toLowerCase());
+  wordsInput.value=words.join('\n');
+  if(selectedImageRow===row)selectedImageRow=null;
+  buildImageRows(currentImages);
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  if(rows.length)selectImageRow(rows[Math.min(rows.length-1,0)]);
+  setStatus('Deleted “'+target+'”.');
+  saveState();
+}
+
+function deleteSelectedWord(){
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  const row=(selectedImageRow&&document.body.contains(selectedImageRow))?selectedImageRow:rows[rows.length-1];
+  if(!row)return setStatus('There are no words to delete.');
+  deleteWordRow(row);
+}
+function buildImageRows(existing=[]){const words=parseWords();if(!words.length){imageRows.className='image-rows empty-state-box';imageRows.innerHTML='<p>Add your words first, then click <strong>Refresh picture list</strong>.</p>';saveState();return;}const savedMap=new Map(existing.map(item=>[item.word.toLowerCase(),item]));imageRows.className='image-rows';imageRows.innerHTML='';words.forEach(word=>{const row=document.createElement('div');row.className='image-row';const wordInput=document.createElement('input');wordInput.className='image-word-input';wordInput.value=word;wordInput.readOnly=true;const preview=document.createElement('div');preview.className='image-preview';preview.textContent='No image';const urlInput=document.createElement('input');urlInput.className='image-url-input';urlInput.type='url';urlInput.placeholder='Image URL (optional)';const tools=document.createElement('div');tools.className='row-tools';const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/*';fileInput.hidden=true;function setPreview(src){preview.innerHTML='';if(src){preview.dataset.src=src;preview.innerHTML=`<img src="${src}" alt="${escapeHtml(word)}">`;}else{delete preview.dataset.src;preview.textContent='No image';}saveState();}row.setImage=setPreview;row.word=word;row.previewBox=preview;row.addEventListener('click',()=>selectImageRow(row));preview.title='Click to select this word';const localSrc=builtinPictureForWord(word);const localBtn=localSrc?makeButton('Our picture','mini-btn our-pic-btn',()=>{row.setImage(localSrc);setStatus(`Picture added for ${word}.`);}):null;const styledBtn=makeButton('Yandex · clipart','mini-btn gold-btn',()=>{openYandexImages(word,true);setStatus(`Yandex opened with a clean clipart query for ${word}. Download or copy the picture URL, then use Upload / Use URL here.`);});const allBtn=makeButton('Yandex · all','mini-btn',()=>{openYandexImages(word,false);setStatus(`Yandex Images opened for ${word}.`);});const uploadBtn=makeButton('Upload','mini-btn',()=>fileInput.click());const urlBtn=makeButton('Use URL','mini-btn',()=>{const src=urlInput.value.trim();if(src)setPreview(src);});const clearBtn=makeButton('Clear','mini-btn',()=>{urlInput.value='';setPreview('');});const deleteWordBtn=makeButton('Delete word','mini-btn danger-mini-btn',e=>{e?.stopPropagation?.();deleteWordRow(row);});fileInput.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const src=await readFileAsDataUrl(file);setPreview(src);setStatus(`Picture uploaded for ${word}.`);});const existingItem=savedMap.get(word.toLowerCase());if(existingItem?.imageSrc&&!String(existingItem.imageSrc).startsWith('builtin:')){setPreview(existingItem.imageSrc);if(/^https?:/i.test(existingItem.imageSrc))urlInput.value=existingItem.imageSrc;}else if(getMode()!=='word'&&localSrc){setPreview(localSrc);}if(localBtn)tools.append(localBtn);tools.append(styledBtn,allBtn,uploadBtn,urlBtn,clearBtn,deleteWordBtn,fileInput);row.append(wordInput,preview,urlInput,tools);imageRows.appendChild(row);});if(!selectedImageRow||!document.body.contains(selectedImageRow))selectImageRow(document.querySelector('.image-row'));saveState();}
 function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||''}));}
 function buildCards(){const words=parseWords();const imageMap=new Map(gatherImageState().map(item=>[item.word.toLowerCase(),item.imageSrc||'']));return words.map(word=>({word,imageSrc:imageMap.get(word.toLowerCase())||''}));}
 function shuffled(arr){const copy=arr.map(v=>({...v}));if(!shuffleToggle.checked)return copy;for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
@@ -391,6 +449,9 @@ sortListBtn.addEventListener('click',sortWordList);
 clearListBtn.addEventListener('click',clearWordList);
 importWordsInput.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)importWordsFile(file);});
 buildImageRowsBtn.addEventListener('click',()=>{const currentImages=gatherImageState();buildImageRows(currentImages);setStatus('Picture list refreshed. Current pictures were kept.');});
+quickAddWordBtn?.addEventListener('click',addWordsFromQuickPanel);
+quickWordInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addWordsFromQuickPanel();}});
+deleteSelectedWordBtn?.addEventListener('click',deleteSelectedWord);
 addWordBtn?.addEventListener('click',addWordInteractive);
 addWordPicturesBtn?.addEventListener('click',addWordInteractive);
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
