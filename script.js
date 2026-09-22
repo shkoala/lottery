@@ -31,9 +31,13 @@ const teamBScoreEl=document.getElementById('teamBScore');
 const restartBtn=document.getElementById('restartBtn');
 const clearBtn=document.getElementById('clearBtn');
 const nextBtn=document.getElementById('nextBtn');
+const roundEndOverlay=document.getElementById('roundEndOverlay');
+const playAgainBtn=document.getElementById('playAgainBtn');
+const roundSettingsBtn=document.getElementById('roundSettingsBtn');
 const fullscreenBtn=document.getElementById('fullscreenBtn');
 const shuffleToggle=document.getElementById('shuffleToggle');
 const progressTitle=document.getElementById('progressTitle');
+const ticket=document.getElementById('ticket');
 const ticketContent=document.getElementById('ticketContent');
 const picturePanel=document.getElementById('picturePanel');
 const wordPanel=document.getElementById('wordPanel');
@@ -70,7 +74,7 @@ let selectedImageRow=null;
 
 const STORAGE_KEY='shkoala_lottery_final_v1';
 const OPENVERSE_API='https://api.openverse.org/v1/images/';
-const AUTO_REVEAL_THRESHOLD=70;
+const AUTO_REVEAL_THRESHOLD=80;
 const demoWords=['dog','apple','holiday','music','teacher','banana'];
 const presetCategories={"pets":["cat","dog","rabbit","hamster","parrot","fish","turtle","guinea pig"],"farm":["cow","pig","sheep","goat","horse","hen","duck","donkey","rooster"],"zoo":["lion","tiger","elephant","giraffe","zebra","monkey","panda","bear","wolf","fox","deer","squirrel","hedgehog","owl","crocodile","hippo"],"sea":["fish","dolphin","whale","shark","octopus","crab","starfish"],"food":["apple","banana","orange","grapes","strawberry","watermelon","bread","cheese","milk","juice","ice cream","cupcake","pizza","burger","sandwich","carrot"],"school":["pencil","pen","crayons","eraser","ruler","school bag","notebook","scissors","glue","paint palette","calculator","water bottle","paintbrush","book","marker","sharpener"],"weather":["sun","cloud","rain","snowflake","rainbow","wind","thunderstorm","umbrella","fog","partly cloudy","autumn leaf","snowman"],"garden":["tree","flower","grass","watering can"],"transport":["car","bus","train","airplane","helicopter","bicycle","motorcycle","sailboat","ship","van","taxi","fire truck","ambulance","police car","tractor","scooter"],"home":["bed","sofa","chair","table","desk","wardrobe","bookshelf","lamp","clock","mirror","armchair","stool","cupboard","fridge","oven","washing machine","bathtub","sink"],"clothes":["t-shirt","shirt","sweater","hoodie","coat","dress","skirt","trousers","shorts","socks","shoes","boots","sandals","cap","scarf","gloves"],"body":["head","hair","eye","ear","nose","mouth","tooth","hand","arm","leg","foot","finger","shoulder","knee","elbow","back"],"birds":["parrot","owl","penguin","flamingo","peacock","swan","chick","eagle","toucan"],"toys":["teddy bear","ball","doll","toy car","toy train","blocks","kite","robot","yo-yo"],"actions":["read","write","run","jump","eat","sleep","sit","stand","clap"],"everyday":["ball","cup","phone","key","umbrella","clock","toothbrush","camera","gift"]};
 const BUILTIN_ALIASES={"pencil":"pencil","pencils":"pencil","карандаш":"pencil","карандаши":"pencil","pen":"pen","pens":"pen","ручка":"pen","ручки":"pen","crayons":"crayons","crayon":"crayons","мелки":"crayons","восковые мелки":"crayons","eraser":"eraser","rubber":"eraser","ластик":"eraser","ruler":"ruler","линейка":"ruler","school bag":"school bag","schoolbag":"school bag","backpack":"school bag","bag":"school bag","рюкзак":"school bag","ранец":"school bag","портфель":"school bag","notebook":"notebook","copybook":"notebook","exercise book":"notebook","тетрадь":"notebook","scissors":"scissors","ножницы":"scissors","glue":"glue","glue stick":"glue","клей":"glue","paint palette":"paint palette","palette":"paint palette","paints":"paint palette","палитра":"paint palette","краски":"paint palette","calculator":"calculator","калькулятор":"calculator","water bottle":"water bottle","bottle":"water bottle","бутылка воды":"water bottle","бутылка":"water bottle","paintbrush":"paintbrush","paint brush":"paintbrush","brush":"paintbrush","кисточка":"paintbrush","кисть":"hand","book":"book","books":"book","книга":"book","книги":"book","marker":"marker","felt-tip pen":"marker","felt tip pen":"marker","маркер":"marker","фломастер":"marker","sharpener":"sharpener","pencil sharpener":"sharpener","точилка":"sharpener","apple":"apple","яблоко":"apple","banana":"banana","банан":"banana","orange":"orange","апельсин":"orange","grapes":"grapes","grape":"grapes","виноград":"grapes","strawberry":"strawberry","клубника":"strawberry","watermelon":"watermelon","арбуз":"watermelon","bread":"bread","хлеб":"bread","cheese":"cheese","сыр":"cheese","milk":"milk","молоко":"milk","juice":"juice","сок":"juice","ice cream":"ice cream","ice-cream":"ice cream","icecream":"ice cream","мороженое":"ice cream","cupcake":"cupcake","muffin":"cupcake","кекс":"cupcake","pizza":"pizza","пицца":"pizza","burger":"burger","hamburger":"burger","бургер":"burger","sandwich":"sandwich","сэндвич":"sandwich","бутерброд":"sandwich","carrot":"carrot","морковь":"carrot","sun":"sun","sunny":"sun","солнце":"sun","солнечно":"sun","cloud":"cloud","cloudy":"cloud","облако":"cloud","облачно":"cloud","rain":"rain","rainy":"rain","дождь":"rain","дождливо":"rain","snowflake":"snowflake","snow":"snowflake","снежинка":"snowflake","снег":"snowflake","rainbow":"rainbow","радуга":"rainbow","wind":"wind","windy":"wind","ветер":"wind","ветрено":"wind","thunderstorm":"thunderstorm","storm":"thunderstorm","гроза":"thunderstorm","буря":"thunderstorm","umbrella":"umbrella","зонт":"umbrella","fog":"fog","foggy":"fog","туман":"fog","partly cloudy":"partly cloudy","переменная облачность":"partly cloudy","autumn leaf":"autumn leaf","fall leaf":"autumn leaf","осенний лист":"autumn leaf","лист":"autumn leaf","snowman":"snowman","снеговик":"snowman","tree":"tree","дерево":"tree","flower":"flower","цветок":"flower","grass":"grass","трава":"grass","watering can":"watering can","лейка":"watering can","car":"car","automobile":"car","машина":"car","автомобиль":"car","bus":"bus","автобус":"bus","train":"train","поезд":"train","airplane":"airplane","aeroplane":"airplane","plane":"airplane","самолет":"airplane","самолёт":"airplane","helicopter":"helicopter","вертолет":"helicopter","вертолёт":"helicopter","bicycle":"bicycle","bike":"bicycle","велосипед":"bicycle","motorcycle":"motorcycle","motorbike":"motorcycle","мотоцикл":"motorcycle","sailboat":"sailboat","sailing boat":"sailboat","парусная лодка":"sailboat","парусник":"sailboat","ship":"ship","корабль":"ship","van":"van","фургон":"van","taxi":"taxi","такси":"taxi","fire truck":"fire truck","fire engine":"fire truck","пожарная машина":"fire truck","ambulance":"ambulance","скорая":"ambulance","скорая помощь":"ambulance","police car":"police car","полицейская машина":"police car","tractor":"tractor","трактор":"tractor","scooter":"scooter","самокат":"scooter","bed":"bed","кровать":"bed","sofa":"sofa","couch":"sofa","диван":"sofa","chair":"chair","стул":"chair","table":"table","стол":"table","desk":"desk","письменный стол":"desk","парта":"desk","wardrobe":"wardrobe","closet":"wardrobe","шкаф":"wardrobe","bookshelf":"bookshelf","bookcase":"bookshelf","книжный шкаф":"bookshelf","полка":"bookshelf","lamp":"lamp","лампа":"lamp","clock":"clock","часы":"clock","mirror":"mirror","зеркало":"mirror","armchair":"armchair","кресло":"armchair","stool":"stool","табурет":"stool","fridge":"fridge","refrigerator":"fridge","холодильник":"fridge","oven":"oven","stove":"oven","духовка":"oven","плита":"oven","bathtub":"bathtub","bath":"bathtub","ванна":"bathtub","sink":"sink","раковина":"sink","cupboard":"cupboard","шкафчик":"cupboard","washing machine":"washing machine","стиральная машина":"washing machine","t-shirt":"t-shirt","tshirt":"t-shirt","tee":"t-shirt","футболка":"t-shirt","shirt":"shirt","рубашка":"shirt","sweater":"sweater","jumper":"sweater","свитер":"sweater","hoodie":"hoodie","толстовка":"hoodie","худи":"hoodie","coat":"coat","пальто":"coat","dress":"dress","платье":"dress","skirt":"skirt","юбка":"skirt","trousers":"trousers","pants":"trousers","брюки":"trousers","штаны":"trousers","shorts":"shorts","шорты":"shorts","socks":"socks","sock":"socks","носки":"socks","shoes":"shoes","shoe":"shoes","туфли":"shoes","обувь":"shoes","boots":"boots","ботинки":"boots","сапоги":"boots","sandals":"sandals","сандалии":"sandals","cap":"cap","кепка":"cap","scarf":"scarf","шарф":"scarf","gloves":"gloves","перчатки":"gloves","head":"head","голова":"head","hair":"hair","волосы":"hair","eye":"eye","eyes":"eye","глаз":"eye","глаза":"eye","ear":"ear","ears":"ear","ухо":"ear","уши":"ear","nose":"nose","нос":"nose","mouth":"mouth","рот":"mouth","tooth":"tooth","teeth":"tooth","зуб":"tooth","зубы":"tooth","hand":"hand","hands":"hand","ладонь":"hand","arm":"arm","arms":"arm","рука":"arm","руки":"arm","leg":"leg","legs":"leg","нога":"leg","ноги":"leg","foot":"foot","feet":"foot","ступня":"foot","стопа":"foot","finger":"finger","fingers":"finger","палец":"finger","пальцы":"finger","shoulder":"shoulder","плечо":"shoulder","knee":"knee","колено":"knee","elbow":"elbow","локоть":"elbow","back":"back","спина":"back","cat":"cat","cats":"cat","кошка":"cat","кот":"cat","dog":"dog","dogs":"dog","собака":"dog","пес":"dog","пёс":"dog","rabbit":"rabbit","bunny":"rabbit","кролик":"rabbit","hamster":"hamster","хомяк":"hamster","parrot":"parrot","попугай":"parrot","fish":"fish","рыба":"fish","рыбка":"fish","turtle":"turtle","черепаха":"turtle","guinea pig":"guinea pig","морская свинка":"guinea pig","cow":"cow","корова":"cow","pig":"pig","свинья":"pig","поросенок":"pig","поросёнок":"pig","sheep":"sheep","овца":"sheep","goat":"goat","коза":"goat","horse":"horse","лошадь":"horse","hen":"hen","chicken":"hen","курица":"hen","duck":"duck","утка":"duck","donkey":"donkey","осел":"donkey","осёл":"donkey","rooster":"rooster","cock":"rooster","петух":"rooster","lion":"lion","лев":"lion","tiger":"tiger","тигр":"tiger","elephant":"elephant","слон":"elephant","giraffe":"giraffe","жираф":"giraffe","zebra":"zebra","зебра":"zebra","monkey":"monkey","обезьяна":"monkey","panda":"panda","панда":"panda","bear":"bear","медведь":"bear","wolf":"wolf","волк":"wolf","fox":"fox","лиса":"fox","deer":"deer","олень":"deer","squirrel":"squirrel","белка":"squirrel","hedgehog":"hedgehog","еж":"hedgehog","ёж":"hedgehog","owl":"owl","сова":"owl","crocodile":"crocodile","крокодил":"crocodile","hippo":"hippo","hippopotamus":"hippo","бегемот":"hippo","dolphin":"dolphin","дельфин":"dolphin","whale":"whale","кит":"whale","shark":"shark","акула":"shark","octopus":"octopus","осьминог":"octopus","crab":"crab","краб":"crab","starfish":"starfish","морская звезда":"starfish","penguin":"penguin","пингвин":"penguin","flamingo":"flamingo","фламинго":"flamingo","teddy bear":"teddy bear","teddy":"teddy bear","мишка":"teddy bear","плюшевый мишка":"teddy bear","doll":"doll","кукла":"doll","toy car":"toy car","машинка":"toy car","игрушечная машина":"toy car","ball":"ball","мяч":"ball","toy train":"toy train","игрушечный поезд":"toy train","blocks":"blocks","building blocks":"blocks","кубики":"blocks","kite":"kite","воздушный змей":"kite","robot":"robot","робот":"robot","yo-yo":"yo-yo","yoyo":"yo-yo","йо-йо":"yo-yo","peacock":"peacock","павлин":"peacock","swan":"swan","лебедь":"swan","chick":"chick","цыпленок":"chick","цыплёнок":"chick","eagle":"eagle","орел":"eagle","орёл":"eagle","toucan":"toucan","тукан":"toucan","read":"read","reading":"read","читать":"read","чтение":"read","write":"write","writing":"write","писать":"write","письмо":"write","run":"run","running":"run","бегать":"run","бежать":"run","jump":"jump","jumping":"jump","прыгать":"jump","eat":"eat","eating":"eat","есть":"eat","кушать":"eat","sleep":"sleep","sleeping":"sleep","спать":"sleep","sit":"sit","sitting":"sit","сидеть":"sit","stand":"stand","standing":"stand","стоять":"stand","clap":"clap","clapping":"clap","хлопать":"clap","cup":"cup","mug":"cup","чашка":"cup","кружка":"cup","phone":"phone","mobile phone":"phone","smartphone":"phone","телефон":"phone","key":"key","ключ":"key","toothbrush":"toothbrush","зубная щетка":"toothbrush","зубная щётка":"toothbrush","camera":"camera","фотоаппарат":"camera","камера":"camera","gift":"gift","present":"gift","подарок":"gift"};
@@ -221,33 +225,40 @@ async function pasteImageIntoSelectedRow(e){
 function addWordsFromQuickPanel(){
   const raw=(quickWordInput?.value||'').trim();
   if(!raw)return;
+
   const incoming=parseWordsFromText(raw);
   if(!incoming.length)return;
+
   const existing=parseWords();
   const seen=new Set(existing.map(w=>w.toLowerCase()));
   const added=[];
+
   for(const word of incoming){
     const key=word.toLowerCase();
     if(seen.has(key))continue;
     seen.add(key);
-    existing.push(word);
     added.push(word);
   }
+
   if(!added.length){
     setStatus('That word is already in the list.');
     quickWordInput.select();
     return;
   }
+
+  existing.unshift(...added);
+
   const currentImages=gatherImageState();
   wordsInput.value=existing.join('\n');
   buildImageRows(currentImages);
   quickWordInput.value='';
-  const rows=Array.from(document.querySelectorAll('.image-row'));
-  const newRow=rows[0];
-  if(newRow){
-    selectImageRow(newRow);
-    newRow.scrollIntoView({behavior:'smooth',block:'center'});
+
+  const firstRow=document.querySelector('.image-row');
+  if(firstRow){
+    selectImageRow(firstRow);
+    firstRow.scrollIntoView({behavior:'smooth',block:'center'});
   }
+
   setStatus(added.length===1 ? 'Added “'+added[0]+'”.' : 'Added '+added.length+' words.');
   saveState();
 }
@@ -268,12 +279,160 @@ function deleteWordRow(row){
 }
 
 function deleteSelectedWord(){
-  const rows=Array.from(document.querySelectorAll('.image-row'));
-  const row=(selectedImageRow&&document.body.contains(selectedImageRow))?selectedImageRow:rows[rows.length-1];
-  if(!row)return setStatus('There are no words to delete.');
-  deleteWordRow(row);
+  const checked=Array.from(document.querySelectorAll('.image-row .row-select:checked'));
+
+  if(!checked.length){
+    setStatus('Select one or more words with the checkboxes first.');
+    return;
+  }
+
+  const removeKeys=new Set(
+    checked
+      .map(box=>String(box.closest('.image-row')?.word||'').toLowerCase())
+      .filter(Boolean)
+  );
+
+  const currentImages=gatherImageState().filter(
+    item=>!removeKeys.has(String(item.word||'').toLowerCase())
+  );
+  const words=parseWords().filter(w=>!removeKeys.has(w.toLowerCase()));
+
+  wordsInput.value=words.join('\n');
+  selectedImageRow=null;
+  buildImageRows(currentImages);
+
+  setStatus('Deleted '+removeKeys.size+' selected word'+(removeKeys.size===1?'':'s')+'.');
+  saveState();
 }
-function buildImageRows(existing=[]){const words=parseWords();if(!words.length){imageRows.className='image-rows empty-state-box';imageRows.innerHTML='<p>Add your words first, then click <strong>Refresh picture list</strong>.</p>';saveState();return;}const savedMap=new Map(existing.map(item=>[item.word.toLowerCase(),item]));imageRows.className='image-rows';imageRows.innerHTML='';words.forEach(word=>{const row=document.createElement('div');row.className='image-row';const wordInput=document.createElement('input');wordInput.className='image-word-input';wordInput.value=word;wordInput.readOnly=true;const preview=document.createElement('div');preview.className='image-preview';preview.textContent='No image';const urlInput=document.createElement('input');urlInput.className='image-url-input';urlInput.type='url';urlInput.placeholder='Image URL (optional)';const tools=document.createElement('div');tools.className='row-tools';const fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='image/*';fileInput.hidden=true;function setPreview(src){preview.innerHTML='';if(src){preview.dataset.src=src;preview.innerHTML=`<img src="${src}" alt="${escapeHtml(word)}">`;}else{delete preview.dataset.src;preview.textContent='No image';}saveState();}row.setImage=setPreview;row.word=word;row.previewBox=preview;row.addEventListener('click',()=>selectImageRow(row));preview.title='Click to select this word';const localSrc=builtinPictureForWord(word);const localBtn=localSrc?makeButton('Our picture','mini-btn our-pic-btn',()=>{row.setImage(localSrc);setStatus(`Picture added for ${word}.`);}):null;const styledBtn=makeButton('Yandex · clipart','mini-btn gold-btn',()=>{openYandexImages(word,true);setStatus(`Yandex opened with a clean clipart query for ${word}. Download or copy the picture URL, then use Upload / Use URL here.`);});const allBtn=makeButton('Yandex · all','mini-btn',()=>{openYandexImages(word,false);setStatus(`Yandex Images opened for ${word}.`);});const uploadBtn=makeButton('Upload','mini-btn',()=>fileInput.click());const urlBtn=makeButton('Use URL','mini-btn',()=>{const src=urlInput.value.trim();if(src)setPreview(src);});const clearBtn=makeButton('Clear','mini-btn',()=>{urlInput.value='';setPreview('');});const deleteWordBtn=makeButton('Delete word','mini-btn danger-mini-btn',e=>{e?.stopPropagation?.();deleteWordRow(row);});fileInput.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const src=await readFileAsDataUrl(file);setPreview(src);setStatus(`Picture uploaded for ${word}.`);});const existingItem=savedMap.get(word.toLowerCase());if(existingItem?.imageSrc&&!String(existingItem.imageSrc).startsWith('builtin:')){setPreview(existingItem.imageSrc);if(/^https?:/i.test(existingItem.imageSrc))urlInput.value=existingItem.imageSrc;}else if(getMode()!=='word'&&localSrc){setPreview(localSrc);}if(localBtn)tools.append(localBtn);tools.append(styledBtn,allBtn,uploadBtn,urlBtn,clearBtn,deleteWordBtn,fileInput);row.append(wordInput,preview,urlInput,tools);imageRows.appendChild(row);});if(!selectedImageRow||!document.body.contains(selectedImageRow))selectImageRow(document.querySelector('.image-row'));saveState();}
+
+function buildImageRows(existing=[]){
+  const words=parseWords();
+
+  if(!words.length){
+    imageRows.className='image-rows empty-state-box';
+    imageRows.innerHTML='<p>Add your words below.</p>';
+    saveState();
+    return;
+  }
+
+  const savedMap=new Map(existing.map(item=>[String(item.word||'').toLowerCase(),item]));
+  imageRows.className='image-rows';
+  imageRows.innerHTML='';
+
+  words.forEach(word=>{
+    const row=document.createElement('div');
+    row.className='image-row';
+
+    const selectWrap=document.createElement('label');
+    selectWrap.className='row-select-wrap';
+    selectWrap.title='Select for bulk delete';
+
+    const selectBox=document.createElement('input');
+    selectBox.type='checkbox';
+    selectBox.className='row-select';
+    selectBox.setAttribute('aria-label','Select '+word);
+    selectWrap.appendChild(selectBox);
+
+    const wordInput=document.createElement('input');
+    wordInput.className='image-word-input';
+    wordInput.value=word;
+    wordInput.readOnly=true;
+
+    const preview=document.createElement('div');
+    preview.className='image-preview';
+    preview.textContent='No image';
+
+    const tools=document.createElement('div');
+    tools.className='row-tools';
+
+    const fileInput=document.createElement('input');
+    fileInput.type='file';
+    fileInput.accept='image/*';
+    fileInput.hidden=true;
+
+    function setPreview(src){
+      preview.innerHTML='';
+      if(src){
+        preview.dataset.src=src;
+        preview.innerHTML=`<img src="${src}" alt="${escapeHtml(word)}">`;
+      }else{
+        delete preview.dataset.src;
+        preview.textContent='No image';
+      }
+      saveState();
+    }
+
+    row.setImage=setPreview;
+    row.word=word;
+    row.previewBox=preview;
+
+    row.addEventListener('click',e=>{
+      if(e.target.closest('button,input,label'))return;
+      selectImageRow(row);
+    });
+    preview.addEventListener('click',()=>selectImageRow(row));
+    wordInput.addEventListener('click',()=>selectImageRow(row));
+
+    const localSrc=builtinPictureForWord(word);
+
+    const localBtn=makeButton('Our picture','mini-btn our-pic-btn',e=>{
+      e.stopPropagation();
+      selectImageRow(row);
+      if(!localSrc)return;
+      setPreview(localSrc);
+      setStatus('Our picture added for “'+word+'”.');
+    });
+    localBtn.disabled=!localSrc;
+
+    const yandexBtn=makeButton('Yandex','mini-btn gold-btn',e=>{
+      e.stopPropagation();
+      selectImageRow(row);
+      openYandexImages(word,true);
+      setStatus('Yandex opened for “'+word+'”. Copy the picture, return here and press Ctrl+V.');
+    });
+
+    const uploadBtn=makeButton('Upload','mini-btn',e=>{
+      e.stopPropagation();
+      selectImageRow(row);
+      fileInput.click();
+    });
+
+    const deleteBtn=makeButton('🗑','mini-btn icon-delete-btn',e=>{
+      e.stopPropagation();
+      deleteWordRow(row);
+    });
+    deleteBtn.title='Delete word';
+    deleteBtn.setAttribute('aria-label','Delete '+word);
+
+    fileInput.addEventListener('change',async e=>{
+      const file=e.target.files?.[0];
+      if(!file)return;
+      selectImageRow(row);
+      const src=await readFileAsDataUrl(file);
+      setPreview(src);
+      setStatus('Picture uploaded for “'+word+'”.');
+      e.target.value='';
+    });
+
+    const existingItem=savedMap.get(word.toLowerCase());
+    if(existingItem?.imageSrc && !String(existingItem.imageSrc).startsWith('builtin:')){
+      setPreview(existingItem.imageSrc);
+    }else if(getMode()!=='word' && localSrc){
+      setPreview(localSrc);
+    }
+
+    tools.append(localBtn,yandexBtn,uploadBtn,deleteBtn,fileInput);
+    row.append(selectWrap,wordInput,preview,tools);
+    imageRows.appendChild(row);
+  });
+
+  if(!selectedImageRow||!document.body.contains(selectedImageRow)){
+    selectImageRow(document.querySelector('.image-row'));
+  }
+
+  saveState();
+}
+
 function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||''}));}
 function buildCards(){const words=parseWords();const imageMap=new Map(gatherImageState().map(item=>[item.word.toLowerCase(),item.imageSrc||'']));return words.map(word=>({word,imageSrc:imageMap.get(word.toLowerCase())||''}));}
 function shuffled(arr){const copy=arr.map(v=>({...v}));if(!shuffleToggle.checked)return copy;for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
@@ -296,10 +455,64 @@ function finishIntroAction(){const action=introPendingAction;introPendingAction=
 function showIntroOverlay(onDone){clearTimeout(introTimer);introPendingAction=onDone||null;introOverlay.classList.remove('hidden');introOverlay.setAttribute('aria-hidden','false');resetIntroAnimation();playIntroShowSound();introTimer=setTimeout(()=>finishIntroAction(),4600);}
 function hideIntroOverlay(clearAction=true){clearTimeout(introTimer);introOverlay.classList.add('hidden');introOverlay.setAttribute('aria-hidden','true');introStage.classList.remove('playing');if(clearAction)introPendingAction=null;}
 function skipIntro(){finishIntroAction();}
+function hideRoundEnd(){
+  roundEndOverlay?.classList.add('hidden');
+  roundEndOverlay?.setAttribute('aria-hidden','true');
+}
+
+function showRoundEnd(){
+  roundEndOverlay?.classList.remove('hidden');
+  roundEndOverlay?.setAttribute('aria-hidden','false');
+}
+
+function handleNextTicket(){
+  if(!deck.length){
+    showRoundEnd();
+    return;
+  }
+  loadNextCard();
+}
+
 function startGameWithIntro(){mode=getMode();cards=buildCards();if(!cards.length)return alert('Add at least one word first.');if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert('Picture modes need a picture for every word.');if(!introEnabled){hideIntroOverlay();startGame();return;}showIntroOverlay(()=>startGame());}
-function startGame(){mode=getMode();cards=buildCards();if(!cards.length)return alert('Add at least one word first.');if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert('Picture modes need a picture for every word.');deck=shuffled(cards);usedCount=0;setupScreen.classList.remove('active');gameScreen.classList.add('active');loadNextCard();saveState();}
-function loadNextCard(){if(!deck.length)deck=shuffled(cards);current=deck.shift();usedCount=(usedCount%cards.length)+1;progressTitle.textContent=`Ticket ${usedCount} / ${cards.length}`;renderCurrent();revealedEnough=false;nextBtn.disabled=true;requestAnimationFrame(()=>requestAnimationFrame(()=>prepareScratchSurface()));}
-function renderPictureSource(src){clearBuiltinSprite(resultBuiltinSprite);if(isBuiltinSrc(src)){resultImage.classList.add('hidden');resultBuiltinSprite.classList.remove('hidden');requestAnimationFrame(()=>{applyBuiltinSprite(resultBuiltinSprite,builtinKeyFromSrc(src));prepareScratchSurface();});}else{resultBuiltinSprite.classList.add('hidden');resultImage.classList.remove('hidden');resultImage.onload=()=>requestAnimationFrame(()=>prepareScratchSurface());resultImage.src=src;}}
+function startGame(){mode=getMode();cards=buildCards();if(!cards.length)return alert('Add at least one word first.');if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert('Picture modes need a picture for every word.');deck=shuffled(cards);usedCount=0;hideRoundEnd();setupScreen.classList.remove('active');gameScreen.classList.add('active');loadNextCard();saveState();}
+function loadNextCard(){
+  if(!deck.length){
+    showRoundEnd();
+    return;
+  }
+
+  // Cover the old ticket before swapping in the next answer.
+  ticket.classList.add('switching-ticket');
+
+  current=deck.shift();
+  usedCount+=1;
+  progressTitle.textContent=`Ticket ${usedCount} / ${cards.length}`;
+  revealedEnough=false;
+  nextBtn.disabled=false;
+
+  renderCurrent();
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    prepareScratchSurface();
+    requestAnimationFrame(()=>ticket.classList.remove('switching-ticket'));
+  }));
+}
+
+function renderPictureSource(src){
+  clearBuiltinSprite(resultBuiltinSprite);
+
+  if(isBuiltinSrc(src)){
+    resultImage.classList.add('hidden');
+    resultBuiltinSprite.classList.remove('hidden');
+    applyBuiltinSprite(resultBuiltinSprite,builtinKeyFromSrc(src));
+  }else{
+    resultBuiltinSprite.classList.add('hidden');
+    resultImage.classList.remove('hidden');
+    resultImage.onload=null;
+    resultImage.src=src;
+  }
+}
+
 function renderCurrent(){const hasPicture=mode!=='word';picturePanel.classList.toggle('hidden',!hasPicture);showWordBtn.classList.toggle('hidden',mode!=='picture');if(mode==='word'){ticketContent.className='ticket-content word-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');}else if(mode==='picture-word'){ticketContent.className='ticket-content dual-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');renderPictureSource(current.imageSrc);}else{ticketContent.className='ticket-content dual-layout';resultWord.textContent='';resultWord.classList.add('hidden');renderPictureSource(current.imageSrc);}requestAnimationFrame(()=>fitWord());}
 function fitWord(){
   const text=(current?.word||'').trim();
@@ -425,7 +638,7 @@ function clearScratchLayers(){for(const l of activeScratchLayers)l.ctx.clearRect
 function autoRevealAndCelebrate(){
   if(revealedEnough)return;revealedEnough=true;
   if(mode==='picture'){resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();}
-  clearScratchLayers();nextBtn.disabled=false;fireConfetti();playFanfare();
+  clearScratchLayers();fireConfetti();playFanfare();
 }
 function checkReveal(){if(revealedEnough)return;if(getRevealedPercent()>=AUTO_REVEAL_THRESHOLD)autoRevealAndCelebrate();}
 function revealAll(){autoRevealAndCelebrate();}
@@ -438,31 +651,28 @@ function animateConfetti(){confettiAnimating=true;confettiCtx.clearRect(0,0,wind
 function importWordsFile(file){file.text().then(text=>{const words=parseWordsFromText(text);if(!words.length)return alert('Could not find words in this file.');wordsInput.value=words.join('\n');buildImageRows(gatherImageState());saveState();});}
 function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}
 function exitToSettings(){hideIntroOverlay();gameScreen.classList.remove('active');setupScreen.classList.add('active');saveState();}
-function restartDeck(){deck=shuffled(cards);usedCount=0;loadNextCard();}
+function restartDeck(){deck=shuffled(cards);usedCount=0;hideRoundEnd();loadNextCard();}
 function readFileAsDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
 
 categoryButtons.forEach(btn=>btn.addEventListener('click',()=>applyCategory(btn.dataset.category)));
 fillDemoBtn.addEventListener('click',()=>{wordsInput.value=demoWords.join('\n');buildImageRows(gatherImageState());saveState();});
-normalizeListBtn.addEventListener('click',normalizeWordList);
 dedupeListBtn.addEventListener('click',dedupeWordList);
 sortListBtn.addEventListener('click',sortWordList);
 clearListBtn.addEventListener('click',clearWordList);
 importWordsInput.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)importWordsFile(file);});
-buildImageRowsBtn.addEventListener('click',()=>{const currentImages=gatherImageState();buildImageRows(currentImages);setStatus('Picture list refreshed. Current pictures were kept.');});
 quickAddWordBtn?.addEventListener('click',addWordsFromQuickPanel);
 quickWordInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addWordsFromQuickPanel();}});
 deleteSelectedWordBtn?.addEventListener('click',deleteSelectedWord);
 addWordBtn?.addEventListener('click',addWordInteractive);
 addWordPicturesBtn?.addEventListener('click',addWordInteractive);
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
-autoFillAllBtn.addEventListener('click',searchSelectedImage);
 clearAllImagesBtn.addEventListener('click',clearAllImages);
-startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);nextBtn.addEventListener('click',loadNextCard);fullscreenBtn.addEventListener('click',toggleFullscreen);
+startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);nextBtn.addEventListener('click',handleNextTicket);playAgainBtn?.addEventListener('click',restartDeck);roundSettingsBtn?.addEventListener('click',()=>{hideRoundEnd();exitToSettings();});fullscreenBtn.addEventListener('click',toggleFullscreen);
 showWordBtn.addEventListener('click',()=>{resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();});
 closeModalBtn.addEventListener('click',closeImageModal);modal.querySelector('[data-close-modal]').addEventListener('click',closeImageModal);
 modalSearchBtn.addEventListener('click',()=>{modalPage=1;fetchModalResults(true);});modalMoreBtn.addEventListener('click',()=>{modalPage+=1;fetchModalResults(true);});modalSearchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){modalPage=1;fetchModalResults(true);}});
-wordsInput.addEventListener('input',saveState);shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))closeImageModal();});document.addEventListener('paste',pasteImageIntoSelectedRow);
+let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();clearTimeout(wordsRefreshTimer);wordsRefreshTimer=setTimeout(()=>buildImageRows(gatherImageState()),220);});shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))closeImageModal();});document.addEventListener('paste',pasteImageIntoSelectedRow);
 let isDown=false;
 [pictureScratchCanvas,wordScratchCanvas].forEach(canvas=>{
   canvas.addEventListener('pointerdown',e=>{isDown=true;lastScratchPoint=null;scratchAt(e);checkReveal();});
