@@ -107,3 +107,39 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
   .image-row{grid-template-columns:1fr 150px!important}
   .image-row .image-url-input,.image-row .row-tools{grid-column:1/-1}
 }
+
+/* FINAL 9 — word row manager */
+.word-row-manager{
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) auto auto;
+  gap:10px;
+  align-items:center;
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fffdf5,#fff8dc);
+}
+.quick-word-input{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:11px 14px;
+  font:700 1rem 'Inter',sans-serif;
+  outline:none;
+  background:#fff;
+}
+.quick-word-input:focus{
+  border-color:rgba(111,86,248,.45);
+  box-shadow:0 0 0 4px rgba(111,86,248,.08);
+}
+.danger-mini-btn{
+  background:#fff1f1!important;
+  color:#c33b4d!important;
+  border:1px solid rgba(195,59,77,.18)!important;
+}
+.danger-mini-btn:hover{box-shadow:0 8px 18px rgba(195,59,77,.10)}
+@media(max-width:760px){
+  .word-row-manager{grid-template-columns:1fr}
+  .word-row-manager .mini-btn{width:100%}
+}
