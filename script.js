@@ -205,7 +205,68 @@ function startGame(){mode=getMode();cards=buildCards();if(!cards.length)return a
 function loadNextCard(){if(!deck.length)deck=shuffled(cards);current=deck.shift();usedCount=(usedCount%cards.length)+1;progressTitle.textContent=`Ticket ${usedCount} / ${cards.length}`;renderCurrent();revealedEnough=false;nextBtn.disabled=true;requestAnimationFrame(()=>requestAnimationFrame(()=>prepareScratchSurface()));}
 function renderPictureSource(src){clearBuiltinSprite(resultBuiltinSprite);if(isBuiltinSrc(src)){resultImage.classList.add('hidden');resultBuiltinSprite.classList.remove('hidden');requestAnimationFrame(()=>{applyBuiltinSprite(resultBuiltinSprite,builtinKeyFromSrc(src));prepareScratchSurface();});}else{resultBuiltinSprite.classList.add('hidden');resultImage.classList.remove('hidden');resultImage.onload=()=>requestAnimationFrame(()=>prepareScratchSurface());resultImage.src=src;}}
 function renderCurrent(){const hasPicture=mode!=='word';picturePanel.classList.toggle('hidden',!hasPicture);showWordBtn.classList.toggle('hidden',mode!=='picture');if(mode==='word'){ticketContent.className='ticket-content word-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');}else if(mode==='picture-word'){ticketContent.className='ticket-content dual-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');renderPictureSource(current.imageSrc);}else{ticketContent.className='ticket-content dual-layout';resultWord.textContent='';resultWord.classList.add('hidden');renderPictureSource(current.imageSrc);}requestAnimationFrame(()=>fitWord());}
-function fitWord(){const text=(current?.word||'').trim();if(!text||resultWord.classList.contains('hidden'))return;const availableWidth=wordPanel.clientWidth-18,availableHeight=wordPanel.clientHeight-18;if(availableWidth<=0||availableHeight<=0)return;let size=mode==='word'?Math.min(availableWidth*0.92,availableHeight*0.95,270):Math.min(availableWidth*0.60,availableHeight*0.55,150);if(displayMode==='kids'){if(mode==='word') size*=1.12; else size*=1.08;}if(mode==='word'&&text.length<=4)size=Math.min(availableWidth*1.16,availableHeight*1.02,displayMode==='kids'?380:340);if(mode==='word'&&text.length<=3)size=Math.min(availableWidth*1.26,availableHeight*1.08,displayMode==='kids'?420:380);if(text.length>=12)size*=0.88;if(text.length>=18)size*=0.79;if(text.length>=26)size*=0.72;resultWord.style.fontSize=`${Math.max(24,size)}px`;let loops=0;while((resultWord.scrollWidth>availableWidth||resultWord.scrollHeight>availableHeight)&&loops<140){size-=2;resultWord.style.fontSize=`${Math.max(20,size)}px`;loops++;}loops=0;while(mode==='word'&&resultWord.scrollWidth<availableWidth*0.92&&resultWord.scrollHeight<availableHeight*0.92&&size<(displayMode==='kids'?420:380)&&loops<120){size+=2;resultWord.style.fontSize=`${size}px`;if(resultWord.scrollWidth>availableWidth||resultWord.scrollHeight>availableHeight){size-=2;resultWord.style.fontSize=`${size}px`;break;}loops++;}resultWord.style.transform='translateY(-2px)';}
+function fitWord(){
+  const text=(current?.word||'').trim();
+  if(!text||resultWord.classList.contains('hidden'))return;
+
+  const availableWidth=Math.max(0,wordPanel.clientWidth-34);
+  const availableHeight=Math.max(0,wordPanel.clientHeight-30);
+  if(availableWidth<=0||availableHeight<=0)return;
+
+  const hasSpaces=/\s/.test(text);
+  resultWord.style.width='100%';
+  resultWord.style.maxWidth='100%';
+  resultWord.style.whiteSpace=hasSpaces?'normal':'nowrap';
+  resultWord.style.wordBreak=hasSpaces?'normal':'normal';
+  resultWord.style.overflowWrap=hasSpaces?'break-word':'normal';
+  resultWord.style.lineHeight='1';
+
+  let maxSize;
+  if(mode==='word') maxSize=displayMode==='kids'?390:350;
+  else maxSize=displayMode==='kids'?172:156;
+
+  const minSize=22;
+  let size=maxSize;
+
+  // For one long word, calculate a safe size from its real font width.
+  if(!hasSpaces){
+    const probe=document.createElement('canvas').getContext('2d');
+    const cs=getComputedStyle(resultWord);
+    probe.font=`${cs.fontWeight||700} 100px ${cs.fontFamily||"'Comic Sans MS', cursive"}`;
+    const measured=Math.max(1,probe.measureText(text).width);
+    const widthFit=(availableWidth*0.90)*100/measured;
+    const heightFit=availableHeight*0.72;
+    size=Math.min(maxSize,widthFit,heightFit);
+
+    // Preserve the beautiful large look for short words.
+    if(text.length<=4)size=Math.min(maxSize,Math.max(size,Math.min(maxSize,availableHeight*.82)));
+    else if(text.length<=7)size=Math.min(maxSize,Math.max(size,Math.min(maxSize,availableHeight*.74)));
+  }else{
+    // Phrases may wrap; start large and let the DOM fit loop reduce them.
+    size=Math.min(maxSize,availableHeight*(mode==='word'?.72:.58));
+    if(text.length>=18)size*=.90;
+    if(text.length>=28)size*=.82;
+  }
+
+  size=Math.max(minSize,size);
+  resultWord.style.fontSize=`${size}px`;
+
+  // Final safety pass against real browser layout so no letters are cropped.
+  let loops=0;
+  while((resultWord.scrollWidth>availableWidth||resultWord.scrollHeight>availableHeight)&&size>minSize&&loops<180){
+    size-=1.5;
+    resultWord.style.fontSize=`${Math.max(minSize,size)}px`;
+    loops++;
+  }
+
+  // Small optical margin for descenders/rounded Comic Sans letters.
+  if(resultWord.scrollHeight>availableHeight*.94&&size>minSize+2){
+    size-=3;
+    resultWord.style.fontSize=`${size}px`;
+  }
+
+  resultWord.style.transform='translateY(-1px)';
+}
 
 function activeCanvasList(){
   if(mode==='word') return [wordScratchCanvas];
@@ -292,7 +353,7 @@ dedupeListBtn.addEventListener('click',dedupeWordList);
 sortListBtn.addEventListener('click',sortWordList);
 clearListBtn.addEventListener('click',clearWordList);
 importWordsInput.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)importWordsFile(file);});
-buildImageRowsBtn.addEventListener('click',()=>buildImageRows(gatherImageState()));
+buildImageRowsBtn.addEventListener('click',()=>{const currentImages=gatherImageState();buildImageRows(currentImages);setStatus('Picture list refreshed. Current pictures were kept.');});
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
 autoFillAllBtn.addEventListener('click',searchSelectedImage);
 clearAllImagesBtn.addEventListener('click',clearAllImages);
