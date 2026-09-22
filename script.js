@@ -74,7 +74,7 @@ let selectedImageRow=null;
 
 const STORAGE_KEY='shkoala_lottery_final_v1';
 const OPENVERSE_API='https://api.openverse.org/v1/images/';
-const AUTO_REVEAL_THRESHOLD=80;
+const AUTO_REVEAL_THRESHOLD=70;
 const demoWords=['dog','apple','holiday','music','teacher','banana'];
 const presetCategories={"pets":["cat","dog","rabbit","hamster","parrot","fish","turtle","guinea pig"],"farm":["cow","pig","sheep","goat","horse","hen","duck","donkey","rooster"],"zoo":["lion","tiger","elephant","giraffe","zebra","monkey","panda","bear","wolf","fox","deer","squirrel","hedgehog","owl","crocodile","hippo"],"sea":["fish","dolphin","whale","shark","octopus","crab","starfish"],"food":["apple","banana","orange","grapes","strawberry","watermelon","bread","cheese","milk","juice","ice cream","cupcake","pizza","burger","sandwich","carrot"],"school":["pencil","pen","crayons","eraser","ruler","school bag","notebook","scissors","glue","paint palette","calculator","water bottle","paintbrush","book","marker","sharpener"],"weather":["sun","cloud","rain","snowflake","rainbow","wind","thunderstorm","umbrella","fog","partly cloudy","autumn leaf","snowman"],"garden":["tree","flower","grass","watering can"],"transport":["car","bus","train","airplane","helicopter","bicycle","motorcycle","sailboat","ship","van","taxi","fire truck","ambulance","police car","tractor","scooter"],"home":["bed","sofa","chair","table","desk","wardrobe","bookshelf","lamp","clock","mirror","armchair","stool","cupboard","fridge","oven","washing machine","bathtub","sink"],"clothes":["t-shirt","shirt","sweater","hoodie","coat","dress","skirt","trousers","shorts","socks","shoes","boots","sandals","cap","scarf","gloves"],"body":["head","hair","eye","ear","nose","mouth","tooth","hand","arm","leg","foot","finger","shoulder","knee","elbow","back"],"birds":["parrot","owl","penguin","flamingo","peacock","swan","chick","eagle","toucan"],"toys":["teddy bear","ball","doll","toy car","toy train","blocks","kite","robot","yo-yo"],"actions":["read","write","run","jump","eat","sleep","sit","stand","clap"],"everyday":["ball","cup","phone","key","umbrella","clock","toothbrush","camera","gift"]};
 const BUILTIN_ALIASES={"pencil":"pencil","pencils":"pencil","карандаш":"pencil","карандаши":"pencil","pen":"pen","pens":"pen","ручка":"pen","ручки":"pen","crayons":"crayons","crayon":"crayons","мелки":"crayons","восковые мелки":"crayons","eraser":"eraser","rubber":"eraser","ластик":"eraser","ruler":"ruler","линейка":"ruler","school bag":"school bag","schoolbag":"school bag","backpack":"school bag","bag":"school bag","рюкзак":"school bag","ранец":"school bag","портфель":"school bag","notebook":"notebook","copybook":"notebook","exercise book":"notebook","тетрадь":"notebook","scissors":"scissors","ножницы":"scissors","glue":"glue","glue stick":"glue","клей":"glue","paint palette":"paint palette","palette":"paint palette","paints":"paint palette","палитра":"paint palette","краски":"paint palette","calculator":"calculator","калькулятор":"calculator","water bottle":"water bottle","bottle":"water bottle","бутылка воды":"water bottle","бутылка":"water bottle","paintbrush":"paintbrush","paint brush":"paintbrush","brush":"paintbrush","кисточка":"paintbrush","кисть":"hand","book":"book","books":"book","книга":"book","книги":"book","marker":"marker","felt-tip pen":"marker","felt tip pen":"marker","маркер":"marker","фломастер":"marker","sharpener":"sharpener","pencil sharpener":"sharpener","точилка":"sharpener","apple":"apple","яблоко":"apple","banana":"banana","банан":"banana","orange":"orange","апельсин":"orange","grapes":"grapes","grape":"grapes","виноград":"grapes","strawberry":"strawberry","клубника":"strawberry","watermelon":"watermelon","арбуз":"watermelon","bread":"bread","хлеб":"bread","cheese":"cheese","сыр":"cheese","milk":"milk","молоко":"milk","juice":"juice","сок":"juice","ice cream":"ice cream","ice-cream":"ice cream","icecream":"ice cream","мороженое":"ice cream","cupcake":"cupcake","muffin":"cupcake","кекс":"cupcake","pizza":"pizza","пицца":"pizza","burger":"burger","hamburger":"burger","бургер":"burger","sandwich":"sandwich","сэндвич":"sandwich","бутерброд":"sandwich","carrot":"carrot","морковь":"carrot","sun":"sun","sunny":"sun","солнце":"sun","солнечно":"sun","cloud":"cloud","cloudy":"cloud","облако":"cloud","облачно":"cloud","rain":"rain","rainy":"rain","дождь":"rain","дождливо":"rain","snowflake":"snowflake","snow":"snowflake","снежинка":"snowflake","снег":"snowflake","rainbow":"rainbow","радуга":"rainbow","wind":"wind","windy":"wind","ветер":"wind","ветрено":"wind","thunderstorm":"thunderstorm","storm":"thunderstorm","гроза":"thunderstorm","буря":"thunderstorm","umbrella":"umbrella","зонт":"umbrella","fog":"fog","foggy":"fog","туман":"fog","partly cloudy":"partly cloudy","переменная облачность":"partly cloudy","autumn leaf":"autumn leaf","fall leaf":"autumn leaf","осенний лист":"autumn leaf","лист":"autumn leaf","snowman":"snowman","снеговик":"snowman","tree":"tree","дерево":"tree","flower":"flower","цветок":"flower","grass":"grass","трава":"grass","watering can":"watering can","лейка":"watering can","car":"car","automobile":"car","машина":"car","автомобиль":"car","bus":"bus","автобус":"bus","train":"train","поезд":"train","airplane":"airplane","aeroplane":"airplane","plane":"airplane","самолет":"airplane","самолёт":"airplane","helicopter":"helicopter","вертолет":"helicopter","вертолёт":"helicopter","bicycle":"bicycle","bike":"bicycle","велосипед":"bicycle","motorcycle":"motorcycle","motorbike":"motorcycle","мотоцикл":"motorcycle","sailboat":"sailboat","sailing boat":"sailboat","парусная лодка":"sailboat","парусник":"sailboat","ship":"ship","корабль":"ship","van":"van","фургон":"van","taxi":"taxi","такси":"taxi","fire truck":"fire truck","fire engine":"fire truck","пожарная машина":"fire truck","ambulance":"ambulance","скорая":"ambulance","скорая помощь":"ambulance","police car":"police car","полицейская машина":"police car","tractor":"tractor","трактор":"tractor","scooter":"scooter","самокат":"scooter","bed":"bed","кровать":"bed","sofa":"sofa","couch":"sofa","диван":"sofa","chair":"chair","стул":"chair","table":"table","стол":"table","desk":"desk","письменный стол":"desk","парта":"desk","wardrobe":"wardrobe","closet":"wardrobe","шкаф":"wardrobe","bookshelf":"bookshelf","bookcase":"bookshelf","книжный шкаф":"bookshelf","полка":"bookshelf","lamp":"lamp","лампа":"lamp","clock":"clock","часы":"clock","mirror":"mirror","зеркало":"mirror","armchair":"armchair","кресло":"armchair","stool":"stool","табурет":"stool","fridge":"fridge","refrigerator":"fridge","холодильник":"fridge","oven":"oven","stove":"oven","духовка":"oven","плита":"oven","bathtub":"bathtub","bath":"bathtub","ванна":"bathtub","sink":"sink","раковина":"sink","cupboard":"cupboard","шкафчик":"cupboard","washing machine":"washing machine","стиральная машина":"washing machine","t-shirt":"t-shirt","tshirt":"t-shirt","tee":"t-shirt","футболка":"t-shirt","shirt":"shirt","рубашка":"shirt","sweater":"sweater","jumper":"sweater","свитер":"sweater","hoodie":"hoodie","толстовка":"hoodie","худи":"hoodie","coat":"coat","пальто":"coat","dress":"dress","платье":"dress","skirt":"skirt","юбка":"skirt","trousers":"trousers","pants":"trousers","брюки":"trousers","штаны":"trousers","shorts":"shorts","шорты":"shorts","socks":"socks","sock":"socks","носки":"socks","shoes":"shoes","shoe":"shoes","туфли":"shoes","обувь":"shoes","boots":"boots","ботинки":"boots","сапоги":"boots","sandals":"sandals","сандалии":"sandals","cap":"cap","кепка":"cap","scarf":"scarf","шарф":"scarf","gloves":"gloves","перчатки":"gloves","head":"head","голова":"head","hair":"hair","волосы":"hair","eye":"eye","eyes":"eye","глаз":"eye","глаза":"eye","ear":"ear","ears":"ear","ухо":"ear","уши":"ear","nose":"nose","нос":"nose","mouth":"mouth","рот":"mouth","tooth":"tooth","teeth":"tooth","зуб":"tooth","зубы":"tooth","hand":"hand","hands":"hand","ладонь":"hand","arm":"arm","arms":"arm","рука":"arm","руки":"arm","leg":"leg","legs":"leg","нога":"leg","ноги":"leg","foot":"foot","feet":"foot","ступня":"foot","стопа":"foot","finger":"finger","fingers":"finger","палец":"finger","пальцы":"finger","shoulder":"shoulder","плечо":"shoulder","knee":"knee","колено":"knee","elbow":"elbow","локоть":"elbow","back":"back","спина":"back","cat":"cat","cats":"cat","кошка":"cat","кот":"cat","dog":"dog","dogs":"dog","собака":"dog","пес":"dog","пёс":"dog","rabbit":"rabbit","bunny":"rabbit","кролик":"rabbit","hamster":"hamster","хомяк":"hamster","parrot":"parrot","попугай":"parrot","fish":"fish","рыба":"fish","рыбка":"fish","turtle":"turtle","черепаха":"turtle","guinea pig":"guinea pig","морская свинка":"guinea pig","cow":"cow","корова":"cow","pig":"pig","свинья":"pig","поросенок":"pig","поросёнок":"pig","sheep":"sheep","овца":"sheep","goat":"goat","коза":"goat","horse":"horse","лошадь":"horse","hen":"hen","chicken":"hen","курица":"hen","duck":"duck","утка":"duck","donkey":"donkey","осел":"donkey","осёл":"donkey","rooster":"rooster","cock":"rooster","петух":"rooster","lion":"lion","лев":"lion","tiger":"tiger","тигр":"tiger","elephant":"elephant","слон":"elephant","giraffe":"giraffe","жираф":"giraffe","zebra":"zebra","зебра":"zebra","monkey":"monkey","обезьяна":"monkey","panda":"panda","панда":"panda","bear":"bear","медведь":"bear","wolf":"wolf","волк":"wolf","fox":"fox","лиса":"fox","deer":"deer","олень":"deer","squirrel":"squirrel","белка":"squirrel","hedgehog":"hedgehog","еж":"hedgehog","ёж":"hedgehog","owl":"owl","сова":"owl","crocodile":"crocodile","крокодил":"crocodile","hippo":"hippo","hippopotamus":"hippo","бегемот":"hippo","dolphin":"dolphin","дельфин":"dolphin","whale":"whale","кит":"whale","shark":"shark","акула":"shark","octopus":"octopus","осьминог":"octopus","crab":"crab","краб":"crab","starfish":"starfish","морская звезда":"starfish","penguin":"penguin","пингвин":"penguin","flamingo":"flamingo","фламинго":"flamingo","teddy bear":"teddy bear","teddy":"teddy bear","мишка":"teddy bear","плюшевый мишка":"teddy bear","doll":"doll","кукла":"doll","toy car":"toy car","машинка":"toy car","игрушечная машина":"toy car","ball":"ball","мяч":"ball","toy train":"toy train","игрушечный поезд":"toy train","blocks":"blocks","building blocks":"blocks","кубики":"blocks","kite":"kite","воздушный змей":"kite","robot":"robot","робот":"robot","yo-yo":"yo-yo","yoyo":"yo-yo","йо-йо":"yo-yo","peacock":"peacock","павлин":"peacock","swan":"swan","лебедь":"swan","chick":"chick","цыпленок":"chick","цыплёнок":"chick","eagle":"eagle","орел":"eagle","орёл":"eagle","toucan":"toucan","тукан":"toucan","read":"read","reading":"read","читать":"read","чтение":"read","write":"write","writing":"write","писать":"write","письмо":"write","run":"run","running":"run","бегать":"run","бежать":"run","jump":"jump","jumping":"jump","прыгать":"jump","eat":"eat","eating":"eat","есть":"eat","кушать":"eat","sleep":"sleep","sleeping":"sleep","спать":"sleep","sit":"sit","sitting":"sit","сидеть":"sit","stand":"stand","standing":"stand","стоять":"stand","clap":"clap","clapping":"clap","хлопать":"clap","cup":"cup","mug":"cup","чашка":"cup","кружка":"cup","phone":"phone","mobile phone":"phone","smartphone":"phone","телефон":"phone","key":"key","ключ":"key","toothbrush":"toothbrush","зубная щетка":"toothbrush","зубная щётка":"toothbrush","camera":"camera","фотоаппарат":"camera","камера":"camera","gift":"gift","present":"gift","подарок":"gift"};
@@ -194,7 +194,41 @@ async function openClassView(){applyDisplayMode('kids'); if(!document.fullscreen
 
 
 function yandexQuery(word,styled=true){const w=String(word||'').trim();const ru=/[А-Яа-яЁё]/.test(w);if(!styled)return w;return ru?`${w} клипарт мультяшная картинка один объект на белом фоне без текста для детей`:`${w} cute cartoon clipart single object isolated white background no text kids vocabulary`;}
-function openYandexImages(word,styled=true){const q=yandexQuery(word,styled);window.open(`https://yandex.ru/images/search?text=${encodeURIComponent(q)}`,'_blank','noopener,noreferrer');}
+let yandexPopup=null;
+let yandexPopupWatch=null;
+
+function openYandexImages(word,styled=true){
+  const q=yandexQuery(word,styled);
+  const url=`https://yandex.ru/images/search?text=${encodeURIComponent(q)}`;
+
+  const width=Math.min(1180,Math.max(760,(window.screen?.availWidth||1200)-140));
+  const height=Math.min(820,Math.max(600,(window.screen?.availHeight||850)-120));
+  const left=Math.max(0,Math.round(((window.screen?.availWidth||width)-width)/2));
+  const top=Math.max(0,Math.round(((window.screen?.availHeight||height)-height)/2));
+
+  const features=`popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+  yandexPopup=window.open(url,'shkoalaYandexImages',features);
+
+  if(!yandexPopup){
+    window.open(url,'_blank','noopener,noreferrer');
+    setStatus('Yandex opened. Copy the picture, return here and press Ctrl+V.');
+    return;
+  }
+
+  try{yandexPopup.focus();}catch{}
+
+  clearInterval(yandexPopupWatch);
+  yandexPopupWatch=setInterval(()=>{
+    if(!yandexPopup||yandexPopup.closed){
+      clearInterval(yandexPopupWatch);
+      yandexPopupWatch=null;
+      yandexPopup=null;
+      try{window.focus();}catch{}
+      setStatus('Yandex window closed. Paste the copied picture with Ctrl+V.');
+    }
+  },450);
+}
+
 function selectImageRow(row){
   document.querySelectorAll('.image-row.selected').forEach(r=>r.classList.remove('selected'));
   selectedImageRow=row||null;
@@ -246,17 +280,19 @@ function addWordsFromQuickPanel(){
     return;
   }
 
-  existing.unshift(...added);
+  // New rows belong at the bottom of the list, immediately above the Add panel.
+  existing.push(...added);
 
   const currentImages=gatherImageState();
   wordsInput.value=existing.join('\n');
   buildImageRows(currentImages);
   quickWordInput.value='';
 
-  const firstRow=document.querySelector('.image-row');
-  if(firstRow){
-    selectImageRow(firstRow);
-    firstRow.scrollIntoView({behavior:'smooth',block:'center'});
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  const newRow=rows[rows.length-1];
+  if(newRow){
+    selectImageRow(newRow);
+    newRow.scrollIntoView({behavior:'smooth',block:'end'});
   }
 
   setStatus(added.length===1 ? 'Added “'+added[0]+'”.' : 'Added '+added.length+' words.');
@@ -513,67 +549,108 @@ function renderPictureSource(src){
   }
 }
 
-function renderCurrent(){const hasPicture=mode!=='word';picturePanel.classList.toggle('hidden',!hasPicture);showWordBtn.classList.toggle('hidden',mode!=='picture');if(mode==='word'){ticketContent.className='ticket-content word-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');}else if(mode==='picture-word'){ticketContent.className='ticket-content dual-layout';resultWord.textContent=current.word;resultWord.classList.remove('hidden');renderPictureSource(current.imageSrc);}else{ticketContent.className='ticket-content dual-layout';resultWord.textContent='';resultWord.classList.add('hidden');renderPictureSource(current.imageSrc);}requestAnimationFrame(()=>fitWord());}
+function renderCurrent(){
+  if(mode==='word'){
+    ticketContent.className='ticket-content word-layout';
+    picturePanel.classList.add('hidden');
+    wordPanel.classList.remove('hidden');
+    showWordBtn.classList.add('hidden');
+    resultWord.textContent=current.word;
+    resultWord.classList.remove('hidden');
+  }else if(mode==='picture-word'){
+    ticketContent.className='ticket-content dual-layout';
+    picturePanel.classList.remove('hidden');
+    wordPanel.classList.remove('hidden');
+    showWordBtn.classList.add('hidden');
+    resultWord.textContent=current.word;
+    resultWord.classList.remove('hidden');
+    renderPictureSource(current.imageSrc);
+  }else{
+    ticketContent.className='ticket-content picture-only-layout';
+    picturePanel.classList.remove('hidden');
+    wordPanel.classList.add('hidden');
+    showWordBtn.classList.add('hidden');
+    resultWord.textContent='';
+    resultWord.classList.add('hidden');
+    renderPictureSource(current.imageSrc);
+  }
+
+  requestAnimationFrame(()=>fitWord());
+}
+
 function fitWord(){
   const text=(current?.word||'').trim();
   if(!text||resultWord.classList.contains('hidden'))return;
 
-  const availableWidth=Math.max(0,wordPanel.clientWidth-34);
+  const availableWidth=Math.max(0,wordPanel.clientWidth-36);
   const availableHeight=Math.max(0,wordPanel.clientHeight-30);
   if(availableWidth<=0||availableHeight<=0)return;
 
-  const hasSpaces=/\s/.test(text);
+  const words=text.split(/\s+/).filter(Boolean);
+  const hasSpaces=words.length>1;
+  const maxSize=mode==='word'
+    ? (displayMode==='kids'?390:350)
+    : (displayMode==='kids'?172:156);
+  const minSize=22;
+
+  const ctx=document.createElement('canvas').getContext('2d');
+  const cs=getComputedStyle(resultWord);
+  const family=cs.fontFamily||"'Comic Sans MS', cursive";
+  const weight=cs.fontWeight||700;
+  const measureAt100=str=>{
+    ctx.font=`${weight} 100px ${family}`;
+    return Math.max(1,ctx.measureText(str).width);
+  };
+
   resultWord.style.width='100%';
   resultWord.style.maxWidth='100%';
-  resultWord.style.whiteSpace=hasSpaces?'normal':'nowrap';
-  resultWord.style.wordBreak=hasSpaces?'normal':'normal';
-  resultWord.style.overflowWrap=hasSpaces?'break-word':'normal';
   resultWord.style.lineHeight='1';
+  resultWord.style.hyphens='none';
+  resultWord.style.wordBreak='normal';
+  resultWord.style.overflowWrap='normal';
 
-  let maxSize;
-  if(mode==='word') maxSize=displayMode==='kids'?390:350;
-  else maxSize=displayMode==='kids'?172:156;
-
-  const minSize=22;
   let size=maxSize;
 
-  // For one long word, calculate a safe size from its real font width.
   if(!hasSpaces){
-    const probe=document.createElement('canvas').getContext('2d');
-    const cs=getComputedStyle(resultWord);
-    probe.font=`${cs.fontWeight||700} 100px ${cs.fontFamily||"'Comic Sans MS', cursive"}`;
-    const measured=Math.max(1,probe.measureText(text).width);
-    const widthFit=(availableWidth*0.90)*100/measured;
-    const heightFit=availableHeight*0.72;
+    resultWord.style.whiteSpace='nowrap';
+    const widthFit=(availableWidth*.90)*100/measureAt100(text);
+    const heightFit=availableHeight*.78;
     size=Math.min(maxSize,widthFit,heightFit);
 
-    // Preserve the beautiful large look for short words.
-    if(text.length<=4)size=Math.min(maxSize,Math.max(size,Math.min(maxSize,availableHeight*.82)));
-    else if(text.length<=7)size=Math.min(maxSize,Math.max(size,Math.min(maxSize,availableHeight*.74)));
+    if(text.length<=4)size=Math.min(maxSize,Math.max(size,availableHeight*.82));
+    else if(text.length<=7)size=Math.min(maxSize,Math.max(size,availableHeight*.74));
   }else{
-    // Phrases may wrap; start large and let the DOM fit loop reduce them.
-    size=Math.min(maxSize,availableHeight*(mode==='word' ? 0.72 : 0.58));
-    if(text.length>=18)size*=.90;
-    if(text.length>=28)size*=.82;
+    // Phrases may wrap ONLY at spaces. First make sure the longest whole word fits.
+    resultWord.style.whiteSpace='normal';
+    const longestWord=words.reduce((a,b)=>measureAt100(a)>=measureAt100(b)?a:b);
+    const longestFit=(availableWidth*.90)*100/measureAt100(longestWord);
+    size=Math.min(maxSize,longestFit,availableHeight*.62);
+
+    // Two-word phrases such as "school bag" stay large but never split "school".
+    if(words.length===2){
+      size=Math.min(maxSize,longestFit,availableHeight*.58);
+    }else if(words.length>=3){
+      size=Math.min(size,availableHeight*.46);
+    }
   }
 
   size=Math.max(minSize,size);
   resultWord.style.fontSize=`${size}px`;
 
-  // Final safety pass against real browser layout so no letters are cropped.
   let loops=0;
-  while((resultWord.scrollWidth>availableWidth||resultWord.scrollHeight>availableHeight)&&size>minSize&&loops<180){
+  while(
+    (resultWord.scrollWidth>availableWidth || resultWord.scrollHeight>availableHeight) &&
+    size>minSize &&
+    loops<220
+  ){
     size-=1.5;
     resultWord.style.fontSize=`${Math.max(minSize,size)}px`;
     loops++;
   }
 
-  // Small optical margin for descenders/rounded Comic Sans letters.
-  if(resultWord.scrollHeight>availableHeight*.94&&size>minSize+2){
-    size-=3;
-    resultWord.style.fontSize=`${size}px`;
-  }
-
+  // Never fall back to splitting a word letter-by-letter.
+  resultWord.style.wordBreak='normal';
+  resultWord.style.overflowWrap='normal';
   resultWord.style.transform='translateY(-1px)';
 }
 
@@ -637,7 +714,7 @@ function getRevealedPercent(){
 function clearScratchLayers(){for(const l of activeScratchLayers)l.ctx.clearRect(0,0,l.canvas.width,l.canvas.height);}
 function autoRevealAndCelebrate(){
   if(revealedEnough)return;revealedEnough=true;
-  if(mode==='picture'){resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();}
+  
   clearScratchLayers();fireConfetti();playFanfare();
 }
 function checkReveal(){if(revealedEnough)return;if(getRevealedPercent()>=AUTO_REVEAL_THRESHOLD)autoRevealAndCelebrate();}
