@@ -88,3 +88,22 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
   #gameScreen .ticket-content{padding-left:14px;padding-right:14px}
   #gameScreen .ticket-top,#gameScreen .ticket-bottom{padding-left:14px;padding-right:14px}
 }
+
+/* FINAL 7 — row picture controls restored */
+.image-row .image-url-input{display:block!important}
+.image-row .row-tools{display:flex!important}
+.image-row{
+  grid-template-columns:minmax(100px,.55fr) minmax(155px,210px) minmax(180px,1fr) auto!important;
+  justify-content:stretch!important;
+  cursor:default!important;
+}
+.image-row .image-preview{cursor:pointer}
+.image-row .row-tools{align-items:center;justify-content:flex-start}
+@media(max-width:1080px){
+  .image-row{grid-template-columns:minmax(110px,.7fr) minmax(150px,190px) 1fr!important}
+  .image-row .row-tools{grid-column:1/-1}
+}
+@media(max-width:700px){
+  .image-row{grid-template-columns:1fr 150px!important}
+  .image-row .image-url-input,.image-row .row-tools{grid-column:1/-1}
+}
