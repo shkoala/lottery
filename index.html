@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Comic+Neue:wght@400;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=final11" rel="stylesheet"/>
+<link href="style.css?v=final12" rel="stylesheet"/>
 </head>
 <body>
 <main class="app-shell">
@@ -219,6 +219,32 @@ holiday" spellcheck="false"></textarea>
 <div class="modal-results" id="modalResults"></div>
 </div>
 </div>
-<script src="script.js?v=final11"></script>
+<div aria-hidden="true" class="crop-modal hidden" id="cropModal">
+  <div class="crop-backdrop" id="cropBackdrop"></div>
+  <div class="crop-card" role="dialog" aria-modal="true" aria-labelledby="cropTitle">
+    <div class="crop-top">
+      <div>
+        <p class="eyebrow">Edit picture</p>
+        <h3 id="cropTitle">Crop picture</h3>
+        <p class="helper-text">Drag the picture. Use the slider to zoom.</p>
+      </div>
+      <button class="ghost-btn" id="cropCloseBtn" type="button">✕</button>
+    </div>
+    <div class="crop-stage-wrap">
+      <canvas id="cropCanvas" width="720" height="720"></canvas>
+    </div>
+    <div class="crop-controls">
+      <span class="crop-zoom-label">−</span>
+      <input id="cropZoom" type="range" min="25" max="300" value="100" step="1" aria-label="Picture zoom"/>
+      <span class="crop-zoom-label">＋</span>
+      <button class="mini-btn" id="cropFitBtn" type="button">Fit</button>
+    </div>
+    <div class="crop-actions">
+      <button class="secondary-btn" id="cropCancelBtn" type="button">Cancel</button>
+      <button class="primary-btn" id="cropApplyBtn" type="button">✂ Use crop</button>
+    </div>
+  </div>
+</div>
+<script src="script.js?v=final12"></script>
 </body>
 </html>
