@@ -49,6 +49,7 @@
 <div class="card-head">
 <h2>Your words</h2>
 <div class="head-actions">
+<button class="mini-btn gold-btn" id="addWordBtn" type="button">＋ Add word</button>
 <button class="mini-btn" id="fillDemoBtn" type="button">Demo list</button>
 <label class="mini-btn file-label">Import .txt / .csv<input accept=".txt,.csv,.tsv" hidden="" id="importWordsInput" type="file"/></label>
 </div>
@@ -97,7 +98,7 @@ holiday" spellcheck="false"></textarea>
 </div>
 </div>
 <div class="card soft-card images-card">
-<div class="card-head"><div><h2>Pictures for picture modes</h2><p class="helper-text">Choose a row if you want to replace one picture.</p></div><button class="mini-btn" id="buildImageRowsBtn" type="button">Refresh picture list</button></div>
+<div class="card-head"><div><h2>Pictures for picture modes</h2><p class="helper-text">Choose a row if you want to replace one picture.</p></div><div class="head-actions"><button class="mini-btn gold-btn" id="addWordPicturesBtn" type="button">＋ Add word</button><button class="mini-btn" id="buildImageRowsBtn" type="button">Refresh picture list</button></div></div>
 <div class="image-search-bar simplified-picture-tools">
 <select class="picture-style-select" hidden="" id="imageStyleSelect"><option selected="" value="illustration">Illustration</option><option value="photo">Photo</option><option value="any">Any</option></select>
 <button class="mini-btn our-pic-btn" id="builtinFillBtn" type="button">Use our pictures</button>
@@ -205,6 +206,6 @@ holiday" spellcheck="false"></textarea>
 <div class="modal-results" id="modalResults"></div>
 </div>
 </div>
-<script src="script.js?v=final7"></script>
+<script src="script.js?v=final8"></script>
 </body>
 </html>
