@@ -223,3 +223,54 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
 .round-end-card p{color:var(--muted);margin-bottom:18px}
 .round-end-emoji{font-size:3rem}
 .round-end-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* FINAL 11 — popup search, better picture fit, phrase fit and picture-only mode */
+
+/* Thumbnails in the setup list must never crop the artwork. */
+.image-preview{
+  padding:5px;
+  box-sizing:border-box;
+}
+.image-preview img{
+  width:100%!important;
+  height:92px!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  background:#fff;
+  border-radius:10px;
+}
+
+/* Game pictures also keep a little breathing room. */
+.picture-panel img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  box-sizing:border-box;
+  padding:8px;
+  background:#fff;
+}
+.result-builtin-sprite{
+  background-size:contain!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+}
+
+/* Picture-only = one large square-ish picture area, no empty word field. */
+.ticket-content.picture-only-layout{
+  grid-template-columns:1fr!important;
+  place-items:center;
+}
+.ticket-content.picture-only-layout .picture-panel{
+  width:min(92%,340px);
+  aspect-ratio:1/1;
+  height:auto;
+  justify-self:center;
+  align-self:center;
+  padding:14px;
+}
+@media(max-width:680px){
+  .ticket-content.picture-only-layout .picture-panel{
+    width:min(94%,285px);
+  }
+}
