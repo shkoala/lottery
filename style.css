@@ -143,3 +143,83 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
   .word-row-manager{grid-template-columns:1fr}
   .word-row-manager .mini-btn{width:100%}
 }
+
+/* FINAL 10 — requested refinements */
+.hero-ticket{overflow:hidden}
+.hero-ticket-cole{
+  position:absolute;
+  right:7px;
+  bottom:-4px;
+  width:74px;
+  height:auto;
+  opacity:.90;
+  filter:saturate(.82) contrast(.98) drop-shadow(0 3px 4px rgba(80,52,0,.18));
+  mix-blend-mode:multiply;
+  pointer-events:none;
+}
+
+.image-row{
+  grid-template-columns:32px minmax(94px,.50fr) minmax(150px,205px) minmax(330px,auto)!important;
+  gap:10px!important;
+  align-items:center;
+}
+.image-row .image-url-input{display:none!important}
+.row-select-wrap{width:28px;height:28px;display:grid;place-items:center;cursor:pointer}
+.row-select{width:18px;height:18px;accent-color:#6f56f8;cursor:pointer}
+.image-row .row-tools{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:8px!important;
+  align-items:center;
+  justify-content:flex-start;
+}
+.image-row .row-tools .mini-btn{
+  white-space:nowrap;
+  padding:9px 13px;
+  font-size:.91rem;
+}
+.icon-delete-btn{
+  width:42px;min-width:42px;
+  padding:9px 0!important;
+  background:#fff1f1!important;
+  color:#c33b4d!important;
+  border:1px solid rgba(195,59,77,.18)!important;
+}
+@media(max-width:900px){
+  .image-row{grid-template-columns:30px 1fr 150px!important}
+  .image-row .row-tools{grid-column:2/-1!important;flex-wrap:wrap!important}
+}
+
+.ticket.switching-ticket .ticket-content::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:60;
+  border-radius:18px;
+  background:linear-gradient(120deg,rgba(238,243,251,.99),rgba(184,195,214,.99) 36%,rgba(250,252,255,.99) 62%,rgba(170,184,207,.99));
+  pointer-events:none;
+}
+
+.round-end-overlay{
+  position:fixed;
+  inset:0;
+  z-index:110;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(24,20,66,.52);
+  backdrop-filter:blur(5px);
+}
+.round-end-card{
+  width:min(430px,92vw);
+  padding:28px;
+  border-radius:28px;
+  background:linear-gradient(180deg,#fffdf2,#fff4bf);
+  text-align:center;
+  box-shadow:0 28px 70px rgba(22,18,64,.28);
+  border:2px solid rgba(255,211,67,.52);
+}
+.round-end-card h2{margin:4px 0 8px;font-size:1.8rem}
+.round-end-card p{color:var(--muted);margin-bottom:18px}
+.round-end-emoji{font-size:3rem}
+.round-end-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
