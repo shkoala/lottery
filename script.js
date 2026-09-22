@@ -148,9 +148,10 @@ function addWordInteractive(){
     const key=word.toLowerCase();
     if(seen.has(key))continue;
     seen.add(key);
-    existing.push(word);
     added.push(word);
   }
+  // New words go to the TOP of the list so they are visible immediately.
+  existing.unshift(...added);
   if(!added.length){
     setStatus('That word is already in the list.');
     return;
@@ -242,7 +243,7 @@ function addWordsFromQuickPanel(){
   buildImageRows(currentImages);
   quickWordInput.value='';
   const rows=Array.from(document.querySelectorAll('.image-row'));
-  const newRow=rows[rows.length-1];
+  const newRow=rows[0];
   if(newRow){
     selectImageRow(newRow);
     newRow.scrollIntoView({behavior:'smooth',block:'center'});
