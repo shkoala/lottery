@@ -41,3 +41,50 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
 
 /* SHKOALA ticket polish FINAL */
 .ticket{border-radius:28px;border:3px solid rgba(153,91,0,.26);background:radial-gradient(circle at 14% 16%,rgba(255,255,255,.78),transparent 13%),radial-gradient(circle at 84% 10%,rgba(255,255,255,.42),transparent 15%),repeating-linear-gradient(135deg,rgba(255,255,255,.055) 0 8px,rgba(118,72,0,.025) 8px 16px),linear-gradient(180deg,#fff7c8 0%,#ffe37a 28%,#ffd04a 58%,#f5ae20 100%);box-shadow:0 34px 70px rgba(15,12,57,.34),0 8px 18px rgba(53,34,0,.18),inset 0 0 0 2px rgba(255,255,255,.52),inset 0 -10px 28px rgba(159,94,0,.12)}.ticket:before{background:radial-gradient(circle at 0 50%,transparent 0 11px,#4a2a7d 12px 15px,transparent 16px) left center/19px 38px repeat-y,radial-gradient(circle at 100% 50%,transparent 0 11px,#4a2a7d 12px 15px,transparent 16px) right center/19px 38px repeat-y;opacity:.92}.ticket:after{inset:11px;border:2px dashed rgba(111,66,0,.36);border-radius:19px}.ticket-brand{font-size:1.62rem;color:#5b368d;text-shadow:0 2px 0 rgba(255,255,255,.55)}.ticket-stamp{color:#fff8cb;background:linear-gradient(145deg,#39206e,#6c45d4 58%,#1aa9dd);border:2px solid rgba(255,240,151,.9);box-shadow:0 8px 18px rgba(48,27,108,.24),inset 0 0 0 2px rgba(255,255,255,.11)}.panel-box{border-radius:21px;border:2px solid rgba(118,73,0,.24);background:radial-gradient(circle at 20% 10%,rgba(255,255,255,.92),transparent 22%),linear-gradient(180deg,#fffefa,#fff8e8);box-shadow:inset 0 0 0 3px rgba(255,255,255,.66),0 12px 22px rgba(92,57,0,.10)}.panel-scratch{border-radius:19px}
+
+
+/* Simplified picture chooser — v5 */
+.simplified-picture-tools{gap:10px}
+.simplified-picture-tools .search-status{flex-basis:100%;margin-top:2px}
+.image-row .image-url-input,.image-row .row-tools{display:none!important}
+.image-row{grid-template-columns:minmax(110px,.55fr) minmax(150px,210px);justify-content:start;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.image-row:hover{border-color:rgba(111,86,248,.30)}
+.image-row.selected{border-color:rgba(111,86,248,.72);box-shadow:0 0 0 4px rgba(111,86,248,.10),0 10px 24px rgba(71,92,150,.08);transform:translateY(-1px)}
+.image-row.selected .image-word-input{border-color:rgba(111,86,248,.45);background:#faf8ff}
+.image-preview{cursor:pointer}
+@media(max-width:700px){.image-row{grid-template-columns:1fr 150px}.simplified-picture-tools{align-items:stretch}.simplified-picture-tools .mini-btn{width:100%}}
+
+/* FINAL 5 — clean game screen + fully visible ticket */
+#gameScreen .topbar > div:first-child{display:flex;flex-direction:column;justify-content:center;min-height:58px}
+#gameScreen .topbar .eyebrow{margin-bottom:5px}
+#gameScreen .topbar-actions{align-items:center}
+#gameScreen .stage-wrap{padding-top:10px}
+#gameScreen .lottery-board{aspect-ratio:16/9;min-height:560px}
+#gameScreen .booth-sign{top:14px;font-size:1.25rem;padding:8px 24px}
+#gameScreen .ticket{
+  top:54%;
+  width:min(840px,calc(100% - 76px));
+  height:min(430px,calc(100% - 116px));
+  min-height:360px;
+}
+#gameScreen .ticket-top{padding:12px 22px 5px}
+#gameScreen .ticket-content{height:calc(100% - 92px);padding:5px 22px 5px;gap:16px}
+#gameScreen .ticket-bottom{padding:5px 22px 10px}
+#gameScreen .ticket-brand{font-size:1.28rem}
+#gameScreen .ticket-stamp{font-size:1rem;padding:6px 12px}
+#gameScreen .panel-box{min-height:0}
+#gameScreen .picture-panel{padding:10px}
+#gameScreen .picture-panel img{max-width:100%;max-height:100%;object-fit:contain}
+#gameScreen .tool-badge{bottom:10px}
+@media(max-width:900px){
+  #gameScreen .lottery-board{min-height:620px;aspect-ratio:auto;height:620px}
+  #gameScreen .ticket{top:54%;width:calc(100% - 48px);height:470px;min-height:0}
+  #gameScreen .ticket-content.dual-layout{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  #gameScreen .lottery-board{height:600px;min-height:600px}
+  #gameScreen .ticket{width:calc(100% - 28px);height:455px}
+  #gameScreen .ticket-content.dual-layout{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  #gameScreen .ticket-content{padding-left:14px;padding-right:14px}
+  #gameScreen .ticket-top,#gameScreen .ticket-bottom{padding-left:14px;padding-right:14px}
+}
