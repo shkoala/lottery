@@ -243,7 +243,7 @@ function fitWord(){
     else if(text.length<=7)size=Math.min(maxSize,Math.max(size,Math.min(maxSize,availableHeight*.74)));
   }else{
     // Phrases may wrap; start large and let the DOM fit loop reduce them.
-    size=Math.min(maxSize,availableHeight*(mode==='word'?.72:.58));
+    size=Math.min(maxSize,availableHeight*(mode==='word' ? 0.72 : 0.58));
     if(text.length>=18)size*=.90;
     if(text.length>=28)size*=.82;
   }
