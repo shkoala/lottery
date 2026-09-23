@@ -416,6 +416,8 @@ button{border:0;cursor:pointer;font:800 1rem 'Inter',sans-serif;transition:trans
   font-weight:800;
   line-height:1;
 }
+.coin-size-tiny{width:21px;height:21px}
+.coin-size-tiny::after{font-size:.68rem}
 .coin-size-small{width:28px;height:28px}
 .coin-size-small::after{font-size:.9rem}
 .coin-size-large{width:40px;height:40px}
@@ -430,6 +432,9 @@ body.kids-mode .coin-size-control{right:18px;bottom:14px}
 @media(max-width:680px){
   .coin-size-control{right:10px;bottom:10px;gap:7px;padding:6px 8px 6px 10px}
   .coin-size-label{font-size:.78rem}
+  .coin-size-tiny{width:19px;height:19px}
   .coin-size-small{width:25px;height:25px}
   .coin-size-large{width:35px;height:35px}
 }
+
+/* FINAL 15 — third, extra-fine scratch coin */
