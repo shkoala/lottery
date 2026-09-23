@@ -145,8 +145,15 @@ function parseWordsFromText(text){return text.split(/\r?\n|,|;/).map(v=>v.trim()
 function parseWords(){return parseWordsFromText(wordsInput.value);} 
 function makeButton(text,className,onClick){const btn=document.createElement('button');btn.type='button';btn.className=className;btn.textContent=text;btn.addEventListener('click',onClick);return btn;}
 function setStatus(message){searchStatus.textContent=message;}
+function newRowId(){return 'row_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);}
+function syncWordsInputFromRows(){
+  const words=Array.from(document.querySelectorAll('.image-row .image-word-input'))
+    .map(input=>input.value.trim())
+    .filter(Boolean);
+  wordsInput.value=words.join('\n');
+}
 function cacheKey(word){return `${word.toLowerCase()}|${imageStyleSelect.value}`;}
-function applyCategory(name){const words=presetCategories[name];if(!words)return;wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus(`Loaded ready solution: ${name}. Built-in pictures are filled first in picture modes.`);saveState();}
+function applyCategory(name){const words=presetCategories[name];if(!words)return;wordsInput.value=words.join('\n');buildImageRows([]);setStatus(`Loaded ready solution: ${name}. Built-in pictures are filled first in picture modes.`);saveState();}
 function addWordInteractive(){
   const raw=window.prompt('Add a word or phrase:');
   if(raw===null)return;
@@ -382,7 +389,22 @@ async function pasteImageIntoSelectedRow(e){
 }
 function addWordsFromQuickPanel(){
   const raw=(quickWordInput?.value||'').trim();
-  if(!raw)return;
+  const currentImages=gatherImageState();
+
+  // Empty Add = a new blank row for a picture-only ticket.
+  if(!raw){
+    currentImages.push({id:newRowId(),word:'',imageSrc:''});
+    buildImageRows(currentImages);
+    const rows=Array.from(document.querySelectorAll('.image-row'));
+    const newRow=rows[rows.length-1];
+    if(newRow){
+      selectImageRow(newRow);
+      newRow.scrollIntoView({behavior:'smooth',block:'end'});
+    }
+    setStatus('Blank picture row added. Paste with Ctrl+V or use Upload.');
+    saveState();
+    return;
+  }
 
   const incoming=parseWordsFromText(raw);
   if(!incoming.length)return;
@@ -404,11 +426,10 @@ function addWordsFromQuickPanel(){
     return;
   }
 
-  // New rows belong at the bottom of the list, immediately above the Add panel.
   existing.push(...added);
-
-  const currentImages=gatherImageState();
   wordsInput.value=existing.join('\n');
+
+  // Keep existing pictures and blank picture-only rows.
   buildImageRows(currentImages);
   quickWordInput.value='';
 
@@ -425,16 +446,17 @@ function addWordsFromQuickPanel(){
 
 function deleteWordRow(row){
   if(!row)return;
-  const target=String(row.word||'').trim();
-  if(!target)return;
-  const currentImages=gatherImageState().filter(item=>item.word.toLowerCase()!==target.toLowerCase());
-  const words=parseWords().filter(w=>w.toLowerCase()!==target.toLowerCase());
-  wordsInput.value=words.join('\n');
+  const label=(row.querySelector('.image-word-input')?.value||'').trim();
   if(selectedImageRow===row)selectedImageRow=null;
-  buildImageRows(currentImages);
-  const rows=Array.from(document.querySelectorAll('.image-row'));
-  if(rows.length)selectImageRow(rows[Math.min(rows.length-1,0)]);
-  setStatus('Deleted “'+target+'”.');
+  row.remove();
+  syncWordsInputFromRows();
+
+  if(!document.querySelector('.image-row')){
+    imageRows.className='image-rows empty-state-box';
+    imageRows.innerHTML='<p>Add your words below.</p>';
+  }
+
+  setStatus(label ? 'Deleted “'+label+'”.' : 'Deleted blank picture row.');
   saveState();
 }
 
@@ -442,46 +464,72 @@ function deleteSelectedWord(){
   const checked=Array.from(document.querySelectorAll('.image-row .row-select:checked'));
 
   if(!checked.length){
-    setStatus('Select one or more words with the checkboxes first.');
+    setStatus('Select one or more rows with the checkboxes first.');
     return;
   }
 
-  const removeKeys=new Set(
-    checked
-      .map(box=>String(box.closest('.image-row')?.word||'').toLowerCase())
-      .filter(Boolean)
-  );
-
-  const currentImages=gatherImageState().filter(
-    item=>!removeKeys.has(String(item.word||'').toLowerCase())
-  );
-  const words=parseWords().filter(w=>!removeKeys.has(w.toLowerCase()));
-
-  wordsInput.value=words.join('\n');
+  checked.forEach(box=>box.closest('.image-row')?.remove());
   selectedImageRow=null;
-  buildImageRows(currentImages);
+  syncWordsInputFromRows();
 
-  setStatus('Deleted '+removeKeys.size+' selected word'+(removeKeys.size===1?'':'s')+'.');
+  if(!document.querySelector('.image-row')){
+    imageRows.className='image-rows empty-state-box';
+    imageRows.innerHTML='<p>Add your words below.</p>';
+  }
+
+  setStatus('Deleted '+checked.length+' selected row'+(checked.length===1?'':'s')+'.');
   saveState();
 }
 
 function buildImageRows(existing=[]){
   const words=parseWords();
+  const existingList=Array.isArray(existing)?existing:[];
+  const usedExisting=new Set();
 
-  if(!words.length){
+  // Match saved image state to current words, then append any saved blank rows.
+  const rowItems=words.map((word,index)=>{
+    let matchIndex=existingList.findIndex((item,i)=>
+      !usedExisting.has(i) &&
+      String(item?.word||'').trim().toLowerCase()===word.toLowerCase()
+    );
+
+    if(matchIndex<0){
+      matchIndex=existingList.findIndex((item,i)=>
+        !usedExisting.has(i) &&
+        String(item?.word||'').trim() &&
+        i===index
+      );
+    }
+
+    if(matchIndex>=0){
+      usedExisting.add(matchIndex);
+      const item=existingList[matchIndex]||{};
+      return {id:item.id||newRowId(),word,imageSrc:item.imageSrc||''};
+    }
+
+    return {id:newRowId(),word,imageSrc:''};
+  });
+
+  existingList.forEach((item,i)=>{
+    if(usedExisting.has(i))return;
+    if(String(item?.word||'').trim())return;
+    rowItems.push({id:item.id||newRowId(),word:'',imageSrc:item.imageSrc||''});
+  });
+
+  if(!rowItems.length){
     imageRows.className='image-rows empty-state-box';
     imageRows.innerHTML='<p>Add your words below.</p>';
     saveState();
     return;
   }
 
-  const savedMap=new Map(existing.map(item=>[String(item.word||'').toLowerCase(),item]));
   imageRows.className='image-rows';
   imageRows.innerHTML='';
 
-  words.forEach(word=>{
+  rowItems.forEach(item=>{
     const row=document.createElement('div');
     row.className='image-row';
+    row.dataset.rowId=item.id||newRowId();
 
     const selectWrap=document.createElement('label');
     selectWrap.className='row-select-wrap';
@@ -490,13 +538,13 @@ function buildImageRows(existing=[]){
     const selectBox=document.createElement('input');
     selectBox.type='checkbox';
     selectBox.className='row-select';
-    selectBox.setAttribute('aria-label','Select '+word);
     selectWrap.appendChild(selectBox);
 
     const wordInput=document.createElement('input');
     wordInput.className='image-word-input';
-    wordInput.value=word;
-    wordInput.readOnly=true;
+    wordInput.value=item.word||'';
+    wordInput.placeholder='Optional word';
+    wordInput.autocomplete='off';
 
     const preview=document.createElement('div');
     preview.className='image-preview';
@@ -510,11 +558,13 @@ function buildImageRows(existing=[]){
     fileInput.accept='image/*';
     fileInput.hidden=true;
 
+    function currentWord(){return wordInput.value.trim();}
+
     function setPreview(src){
       preview.innerHTML='';
       if(src){
         preview.dataset.src=src;
-        preview.innerHTML=`<img src="${src}" alt="${escapeHtml(word)}">`;
+        preview.innerHTML=`<img src="${src}" alt="${escapeHtml(currentWord()||'Picture')}">`;
       }else{
         delete preview.dataset.src;
         preview.textContent='No image';
@@ -523,30 +573,52 @@ function buildImageRows(existing=[]){
     }
 
     row.setImage=setPreview;
-    row.word=word;
+    row.word=currentWord();
     row.previewBox=preview;
+
+    function refreshWordControls(){
+      row.word=currentWord();
+      const localSrc=builtinPictureForWord(row.word);
+      localBtn.disabled=!localSrc;
+      selectBox.setAttribute('aria-label','Select '+(row.word||'blank picture row'));
+      deleteBtn.setAttribute('aria-label','Delete '+(row.word||'blank picture row'));
+    }
 
     row.addEventListener('click',e=>{
       if(e.target.closest('button,input,label'))return;
       selectImageRow(row);
     });
-    preview.addEventListener('click',()=>{selectImageRow(row);if(preview.dataset.src)openCropEditor(row);});
-    wordInput.addEventListener('click',()=>selectImageRow(row));
 
-    const localSrc=builtinPictureForWord(word);
+    preview.addEventListener('click',()=>{
+      selectImageRow(row);
+      if(preview.dataset.src)openCropEditor(row);
+    });
+
+    wordInput.addEventListener('focus',()=>selectImageRow(row));
+    wordInput.addEventListener('input',()=>{
+      refreshWordControls();
+      syncWordsInputFromRows();
+      saveState();
+    });
 
     const localBtn=makeButton('Our picture','mini-btn our-pic-btn',e=>{
       e.stopPropagation();
       selectImageRow(row);
+      const word=currentWord();
+      const localSrc=builtinPictureForWord(word);
       if(!localSrc)return;
       setPreview(localSrc);
       setStatus('Our picture added for “'+word+'”.');
     });
-    localBtn.disabled=!localSrc;
 
     const yandexBtn=makeButton('Yandex','mini-btn gold-btn',e=>{
       e.stopPropagation();
       selectImageRow(row);
+      const word=currentWord();
+      if(!word){
+        setStatus('Type a word first to search Yandex, or paste/upload a picture directly.');
+        return;
+      }
       openYandexImages(word,true);
       setStatus('Yandex opened for “'+word+'”. Copy the picture, return here and press Ctrl+V.');
     });
@@ -561,8 +633,7 @@ function buildImageRows(existing=[]){
       e.stopPropagation();
       deleteWordRow(row);
     });
-    deleteBtn.title='Delete word';
-    deleteBtn.setAttribute('aria-label','Delete '+word);
+    deleteBtn.title='Delete row';
 
     fileInput.addEventListener('change',async e=>{
       const file=e.target.files?.[0];
@@ -570,20 +641,21 @@ function buildImageRows(existing=[]){
       selectImageRow(row);
       const src=await readFileAsDataUrl(file);
       setPreview(src);
-      setStatus('Picture uploaded for “'+word+'”.');
+      setStatus(currentWord() ? 'Picture uploaded for “'+currentWord()+'”.' : 'Picture uploaded.');
       e.target.value='';
     });
 
-    const existingItem=savedMap.get(word.toLowerCase());
-    if(existingItem?.imageSrc && !String(existingItem.imageSrc).startsWith('builtin:')){
-      setPreview(existingItem.imageSrc);
-    }else if(getMode()!=='word' && localSrc){
-      setPreview(localSrc);
+    if(item.imageSrc){
+      setPreview(item.imageSrc);
+    }else if(getMode()!=='word'){
+      const localSrc=builtinPictureForWord(currentWord());
+      if(localSrc)setPreview(localSrc);
     }
 
     tools.append(localBtn,yandexBtn,uploadBtn,deleteBtn,fileInput);
     row.append(selectWrap,wordInput,preview,tools);
     imageRows.appendChild(row);
+    refreshWordControls();
   });
 
   if(!selectedImageRow||!document.body.contains(selectedImageRow)){
@@ -593,8 +665,8 @@ function buildImageRows(existing=[]){
   saveState();
 }
 
-function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||''}));}
-function buildCards(){const words=parseWords();const imageMap=new Map(gatherImageState().map(item=>[item.word.toLowerCase(),item.imageSrc||'']));return words.map(word=>({word,imageSrc:imageMap.get(word.toLowerCase())||''}));}
+function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({id:row.dataset.rowId||newRowId(),word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||''}));}
+function buildCards(){const rows=gatherImageState();if(getMode()==='picture')return rows.map(item=>({word:item.word||'',imageSrc:item.imageSrc||''}));return rows.filter(item=>item.word).map(item=>({word:item.word,imageSrc:item.imageSrc||''}));}
 function shuffled(arr){const copy=arr.map(v=>({...v}));if(!shuffleToggle.checked)return copy;for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
 function isShortSimpleWord(word){return /^[a-zA-Z-]{2,14}$/.test(word.trim())&&!/\s/.test(word.trim());}
 function buildSmartQueries(word){const clean=word.trim();const style=imageStyleSelect.value;const queries=[];if(style==='illustration'){if(isShortSimpleWord(clean)){queries.push(`cute ${clean} cartoon isolated white background`);queries.push(`${clean} cartoon isolated white background`);queries.push(`${clean} illustration isolated`);queries.push(`${clean} clipart`);queries.push(`${clean} drawing for kids`);}else{queries.push(`${clean} illustration`);queries.push(`${clean} cartoon`);queries.push(`${clean} drawing`);queries.push(clean);}}else if(style==='photo'){queries.push(`${clean} isolated white background`);queries.push(`${clean} photo`);queries.push(clean);}else{queries.push(clean);queries.push(`${clean} isolated`);queries.push(`${clean} illustration`);}return [...new Set(queries)];}
