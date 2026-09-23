@@ -31,6 +31,7 @@ const teamBScoreEl=document.getElementById('teamBScore');
 const restartBtn=document.getElementById('restartBtn');
 const clearBtn=document.getElementById('clearBtn');
 const nextBtn=document.getElementById('nextBtn');
+const coinTinyBtn=document.getElementById('coinTinyBtn');
 const coinSmallBtn=document.getElementById('coinSmallBtn');
 const coinLargeBtn=document.getElementById('coinLargeBtn');
 const roundEndOverlay=document.getElementById('roundEndOverlay');
@@ -140,6 +141,7 @@ function makeCoinCursor(size,circleR,fontSize,hotspot){
 }
 const COIN_CURSOR_LARGE=makeCoinCursor(78,28,26,39);
 const COIN_CURSOR_SMALL=makeCoinCursor(52,18,17,26);
+const COIN_CURSOR_TINY=makeCoinCursor(38,13,13,19);
 
 
 let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null,scratchCoinSize='large';
@@ -148,7 +150,7 @@ const rowResultCaches=new Map();
 const rowResultIndices=new Map();
 
 function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({wordsText:wordsInput.value,mode:getMode(),shuffle:shuffleToggle.checked,imageStyle:imageStyleSelect.value,images:gatherImageState(),displayMode,teamAScore,teamBScore,teamAName:teamAName?.value||'Team 1',teamBName:teamBName?.value||'Team 2',scoreboardVisible,introEnabled,scratchCoinSize}));}
-function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=demoWords.join('\n');buildImageRows([]);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText||demoWords.join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=data.scratchCoinSize==='small'?'small':'large';updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=demoWords.join('\n');buildImageRows([]);updateScoreboard(false);updateIntroToggle(false);}}
+function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=demoWords.join('\n');buildImageRows([]);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText||demoWords.join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=['tiny','small','large'].includes(data.scratchCoinSize)?data.scratchCoinSize:'large';updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=demoWords.join('\n');buildImageRows([]);updateScoreboard(false);updateIntroToggle(false);}}
 function refreshModeStyles(){document.querySelectorAll('.mode-option').forEach(el=>{const input=el.querySelector('input');el.classList.toggle('selected',input.checked);});}
 function getMode(){return document.querySelector('input[name="mode"]:checked')?.value||'word';}
 function parseWordsFromText(text){return text.split(/\r?\n|,|;/).map(v=>v.trim()).filter(Boolean);}
@@ -867,15 +869,18 @@ function activeCanvasList(){
   return [];
 }
 function updateCoinSizeUI(shouldSave=true){
+  const isTiny=scratchCoinSize==='tiny';
   const isSmall=scratchCoinSize==='small';
+  const isLarge=scratchCoinSize==='large';
+  coinTinyBtn?.classList.toggle('active',isTiny);
   coinSmallBtn?.classList.toggle('active',isSmall);
-  coinLargeBtn?.classList.toggle('active',!isSmall);
-  const cursor=isSmall?COIN_CURSOR_SMALL:COIN_CURSOR_LARGE;
+  coinLargeBtn?.classList.toggle('active',isLarge);
+  const cursor=isTiny?COIN_CURSOR_TINY:(isSmall?COIN_CURSOR_SMALL:COIN_CURSOR_LARGE);
   [pictureScratchCanvas,wordScratchCanvas].forEach(canvas=>{if(canvas)canvas.style.cursor=cursor;});
   if(shouldSave)saveState();
 }
 function setScratchCoinSize(size){
-  scratchCoinSize=size==='small'?'small':'large';
+  scratchCoinSize=['tiny','small','large'].includes(size)?size:'large';
   lastScratchPoint=null;
   updateCoinSizeUI();
 }
@@ -893,7 +898,7 @@ function prepareScratchSurface(){
     layerCtx.setTransform(1,0,0,1,0,0);
     layerCtx.clearRect(0,0,canvas.width,canvas.height);
     drawScratchFieldLocal(layerCtx,0,0,canvas.width,canvas.height,24*dpr);
-    canvas.style.cursor=scratchCoinSize==='small'?COIN_CURSOR_SMALL:COIN_CURSOR_LARGE;
+    canvas.style.cursor=scratchCoinSize==='tiny'?COIN_CURSOR_TINY:(scratchCoinSize==='small'?COIN_CURSOR_SMALL:COIN_CURSOR_LARGE);
     activeScratchLayers.push({canvas,ctx:layerCtx,dpr});
   }
   lastScratchPoint=null;
@@ -911,7 +916,7 @@ function scratchAt(ev){
   const layer=findScratchLayer(ev.currentTarget);if(!layer)return;
   const rect=layer.canvas.getBoundingClientRect();
   const x=(ev.clientX-rect.left)*layer.dpr,y=(ev.clientY-rect.top)*layer.dpr;
-  const size=(scratchCoinSize==='small'?Math.max(22,rect.width*.018):Math.max(40,rect.width*.032))*layer.dpr;
+  const size=(scratchCoinSize==='tiny'?Math.max(13,rect.width*.0105):(scratchCoinSize==='small'?Math.max(22,rect.width*.018):Math.max(40,rect.width*.032)))*layer.dpr;
   if(lastScratchPoint&&lastScratchPoint.canvas===layer.canvas){
     const dx=x-lastScratchPoint.x,dy=y-lastScratchPoint.y,dist=Math.hypot(dx,dy);
     const steps=Math.max(1,Math.ceil(dist/(size*.42)));
@@ -965,7 +970,7 @@ addWordBtn?.addEventListener('click',addWordInteractive);
 addWordPicturesBtn?.addEventListener('click',addWordInteractive);
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
 clearAllImagesBtn.addEventListener('click',clearAllImages);
-startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);coinSmallBtn?.addEventListener('click',()=>setScratchCoinSize('small'));coinLargeBtn?.addEventListener('click',()=>setScratchCoinSize('large'));nextBtn.addEventListener('click',handleNextTicket);playAgainBtn?.addEventListener('click',restartDeck);roundSettingsBtn?.addEventListener('click',()=>{hideRoundEnd();exitToSettings();});fullscreenBtn.addEventListener('click',toggleFullscreen);
+startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);coinTinyBtn?.addEventListener('click',()=>setScratchCoinSize('tiny'));coinSmallBtn?.addEventListener('click',()=>setScratchCoinSize('small'));coinLargeBtn?.addEventListener('click',()=>setScratchCoinSize('large'));nextBtn.addEventListener('click',handleNextTicket);playAgainBtn?.addEventListener('click',restartDeck);roundSettingsBtn?.addEventListener('click',()=>{hideRoundEnd();exitToSettings();});fullscreenBtn.addEventListener('click',toggleFullscreen);
 showWordBtn.addEventListener('click',()=>{resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();});
 closeModalBtn.addEventListener('click',closeImageModal);modal.querySelector('[data-close-modal]').addEventListener('click',closeImageModal);
 modalSearchBtn.addEventListener('click',()=>{modalPage=1;fetchModalResults(true);});modalMoreBtn.addEventListener('click',()=>{modalPage+=1;fetchModalResults(true);});modalSearchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){modalPage=1;fetchModalResults(true);}});
