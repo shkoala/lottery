@@ -38,6 +38,8 @@ const roundEndOverlay=document.getElementById('roundEndOverlay');
 const playAgainBtn=document.getElementById('playAgainBtn');
 const roundSettingsBtn=document.getElementById('roundSettingsBtn');
 const fullscreenBtn=document.getElementById('fullscreenBtn');
+const langRuBtn=document.getElementById('langRuBtn');
+const langEnBtn=document.getElementById('langEnBtn');
 const shuffleToggle=document.getElementById('shuffleToggle');
 const progressTitle=document.getElementById('progressTitle');
 const ticket=document.getElementById('ticket');
@@ -144,19 +146,237 @@ const COIN_CURSOR_SMALL=makeCoinCursor(52,18,17,26);
 const COIN_CURSOR_TINY=makeCoinCursor(38,13,13,19);
 
 
-let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null,scratchCoinSize='large';
+let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null,scratchCoinSize='large',uiLanguage='ru';
+const STATIC_RU={
+  'Scratch & Speak — Lottery Game':'Scratch & Speak — Лотерея',
+  'Scratch & Speak · Lottery Edition':'Scratch & Speak · Лотерейная версия',
+  'Scratch ticket game':'Лотерея со стираемыми билетами',
+  'A bright lottery-style classroom game with a built-in picture pack, optional Cole intro, scratch sound, two-team scoreboard, full-screen class view and confetti.':'Яркая лотерейная игра для урока: встроенные картинки, интро с Коулом, звук стирания, счёт для двух команд, режим для класса и конфетти.',
+  '⛶ Full screen':'⛶ На весь экран',
+  'Classroom jackpot':'Джекпот на уроке',
+  'Build a branded lottery game with even more wow':'Создайте свою лотерею для урока',
+  'Type your own words, choose a picture mode, add pictures, and run a scratch-ticket reveal with sound, confetti and a playful lottery atmosphere.':'Добавьте свои слова, выберите режим, вставьте картинки — и запускайте лотерею со стиранием, звуком и конфетти.',
+  'More classroom ideas in our VK group':'Больше идей для уроков — в нашей группе ВК',
+  'Click the logo or scan the QR code.':'Нажмите на логотип или отсканируйте QR-код.',
+  'Your words':'Ваши слова',
+  'Demo list':'Пример',
+  'Import .txt / .csv':'Импорт .txt / .csv',
+  'One line = one ticket. Type your own list or import a file.':'Одна строка = один билет. Введите свой список или импортируйте файл.',
+  'Remove duplicates':'Убрать повторы',
+  'Sort A–Z':'По алфавиту',
+  'Clear list':'Очистить список',
+  'Mode':'Режим',
+  'Word':'Слово',
+  'One big scratch field with a stretched word':'Одно большое поле со словом',
+  'Picture + word':'Картинка + слово',
+  'Ticket with two scratch fields':'Два поля для стирания',
+  'Picture only':'Только картинка',
+  'One large picture field · no word':'Одно большое поле с картинкой · без слова',
+  'Random order':'Случайный порядок',
+  'No repeats until the list ends.':'Без повторов, пока не закончится список.',
+  'Ready-made categories':'Готовые темы',
+  'Quick classroom sets. Click any category to replace the current word list.':'Готовые наборы. Нажмите на тему, чтобы заменить текущий список слов.',
+  'Pets':'Домашние питомцы',
+  'Farm animals':'Ферма',
+  'Zoo animals':'Зоопарк',
+  'Sea animals':'Морские животные',
+  'Food':'Еда',
+  'School things':'Школьные принадлежности',
+  'Weather':'Погода',
+  'Garden':'Сад',
+  'Transport':'Транспорт',
+  'Home & furniture':'Дом и мебель',
+  'Clothes':'Одежда',
+  'Body parts':'Части тела',
+  'Birds':'Птицы',
+  'Toys':'Игрушки',
+  'Actions':'Действия',
+  'Everyday things':'Повседневные предметы',
+  'Pictures for picture modes':'Картинки для режимов с изображениями',
+  'Choose a row to replace its picture. Copy/paste with Ctrl+V still works.':'Выберите строку, чтобы заменить картинку. Вставка через Ctrl+V тоже работает.',
+  'Illustration':'Рисунок',
+  'Photo':'Фото',
+  'Any':'Любое',
+  'Use our pictures':'Наши картинки',
+  'Clear all images':'Очистить все картинки',
+  'Our pictures first. For another picture: Yandex → copy → return here → Ctrl+V.':'Сначала наши картинки. Для другой: Яндекс → копировать → вернуться сюда → Ctrl+V.',
+  'Add your words first, then click':'Сначала добавьте слова, затем нажмите',
+  'Refresh picture list':'Обновить список картинок',
+  '＋ Add word':'＋ Добавить',
+  '🗑 Delete selected':'🗑 Удалить выбранные',
+  '✨ Start lottery':'✨ Начать игру',
+  '▶ Preview Cole intro':'▶ Посмотреть интро',
+  'Scratch the lottery ticket':'Сотрите защитный слой',
+  'Teacher mode':'Режим учителя',
+  'Kids mode':'Режим для детей',
+  '⛶ Class view':'⛶ Для класса',
+  'Scoreboard':'Счёт',
+  '← Settings':'← Настройки',
+  '↺ Restart':'↺ Сначала',
+  'Team scoreboard':'Счёт команд',
+  'Reset':'Сбросить',
+  'Hide':'Скрыть',
+  'Lucky Reveal':'Сотри и открой',
+  'WIN!':'ПРИЗ!',
+  'Show word':'Показать слово',
+  'Scratch to reveal':'Сотрите, чтобы открыть',
+  'Classroom edition':'Для урока',
+  'Coin':'Монета',
+  'Reveal all':'Открыть всё',
+  'Next ticket':'Следующий билет',
+  'All tickets are finished!':'Все билеты закончились!',
+  'Play again with the same words?':'Сыграть ещё раз с теми же словами?',
+  'Play again?':'Играть снова',
+  'Settings':'Настройки',
+  'Skip':'Пропустить',
+  'Lucky Scratch Ticket':'Счастливый билет',
+  'Ready?':'Готовы?',
+  'classroom edition':'для урока',
+  'Let’s play!':'Играем!',
+  'The ticket opens and becomes the game':'Билет открывается — и начинается игра',
+  'Cole spins the lottery drum, pulls out a ticket and opens the game.':'Коул крутит барабан, вытягивает билет и запускает игру.',
+  'Picture picker':'Выбор картинки',
+  'Find a picture':'Найти картинку',
+  'Search':'Найти',
+  'More results':'Ещё результаты',
+  'Loading pictures...':'Загружаем картинки...',
+  'Edit picture':'Редактирование картинки',
+  'Crop picture':'Обрезать картинку',
+  'Drag the picture. Use the slider to zoom.':'Перетаскивайте картинку. Масштаб меняется ползунком.',
+  'Fit':'Вместить',
+  'Cancel':'Отмена',
+  '✂ Use crop':'✂ Сохранить обрезку'
+};
+const ATTR_RU={
+  'Add a word… or leave blank for picture only':'Добавьте слово… или оставьте пустым для картинки',
+  'Search term':'Что ищем?',
+  'Tiny coin · finest scratch':'Самая маленькая монета · очень тонкое стирание',
+  'Small coin · thinner scratch':'Маленькая монета · тонкое стирание',
+  'Large coin · wider scratch':'Большая монета · широкое стирание',
+  'Tiny coin':'Самая маленькая монета',
+  'Small coin':'Маленькая монета',
+  'Large coin':'Большая монета',
+  'Scratch coin size':'Размер монеты'
+};
+const originalTextNodes=new WeakMap();
+const originalAttrs=new WeakMap();
+
+function uiText(en,ru){return uiLanguage==='ru'?ru:en;}
+function categoryRu(name){
+  return ({pets:'Домашние питомцы',farm:'Ферма',zoo:'Зоопарк',sea:'Морские животные',food:'Еда',school:'Школьные принадлежности',weather:'Погода',garden:'Сад',transport:'Транспорт',home:'Дом и мебель',clothes:'Одежда',body:'Части тела',birds:'Птицы',toys:'Игрушки',actions:'Действия',everyday:'Повседневные предметы'})[name]||name;
+}
+function translateDynamic(message){
+  const m=String(message??'');
+  if(uiLanguage!=='ru')return m;
+  const exact={
+    'That word is already in the list.':'Это слово уже есть в списке.',
+    'List normalized.':'Список обновлён.',
+    'Duplicate words removed.':'Повторы удалены.',
+    'Word list sorted A–Z.':'Список отсортирован по алфавиту.',
+    'Word list cleared.':'Список слов очищен.',
+    'All images cleared.':'Все картинки удалены.',
+    'Yandex opened. Copy the picture, return here and press Ctrl+V.':'Яндекс открыт. Скопируйте картинку, вернитесь сюда и нажмите Ctrl+V.',
+    'Yandex window closed. Paste the copied picture with Ctrl+V.':'Окно Яндекса закрыто. Вставьте скопированную картинку через Ctrl+V.',
+    'Could not open this picture for cropping.':'Не удалось открыть эту картинку для обрезки.',
+    'This remote picture cannot be cropped directly. Copy the image itself and paste it with Ctrl+V, then crop it.':'Эту картинку нельзя обрезать напрямую. Скопируйте само изображение, вставьте его через Ctrl+V и затем обрежьте.',
+    'Add words first.':'Сначала добавьте слова.',
+    'Blank picture row added. Paste with Ctrl+V or use Upload.':'Добавлена пустая строка для картинки. Вставьте через Ctrl+V или нажмите «Загрузить».',
+    'Select one or more rows with the checkboxes first.':'Сначала отметьте одну или несколько строк.',
+    'Type a word first to search Yandex, or paste/upload a picture directly.':'Сначала введите слово для поиска в Яндексе или сразу вставьте/загрузите картинку.',
+    'Picture uploaded.':'Картинка загружена.',
+    'No matching words in the built-in RU/EN picture pack yet.':'Для этих слов пока нет подходящих картинок в нашей базе.'
+  };
+  if(exact[m])return exact[m];
+  let x=m;
+  x=x.replace(/^Loaded ready solution: ([^.]+)\. Built-in pictures are filled first in picture modes\.$/,(_,n)=>'Загружена тема «'+categoryRu(n)+'». В режимах с картинками сначала подставляется наша база.');
+  x=x.replace(/^Added (\d+) bright built-in pictures\. No web search needed for them\.$/,'Добавлено картинок из нашей базы: $1.');
+  x=x.replace(/^Added “(.+)”\.$/,'Добавлено: «$1».');
+  x=x.replace(/^Added (\d+) words\.$/,'Добавлено слов: $1.');
+  x=x.replace(/^Cropped picture saved for “(.+)”\.$/,'Обрезанная картинка сохранена для «$1».');
+  x=x.replace(/^Yandex opened for “(.+)”\. Copy the image, (?:come back|return) here and press Ctrl\+V\.$/,'Яндекс открыт для «$1». Скопируйте картинку, вернитесь сюда и нажмите Ctrl+V.');
+  x=x.replace(/^Picture pasted for “(.+)”\.$/,'Картинка вставлена для «$1».');
+  x=x.replace(/^Picture URL pasted for “(.+)”\.$/,'Ссылка на картинку вставлена для «$1».');
+  x=x.replace(/^Deleted “(.+)”\.$/,'Удалено: «$1».');
+  x=x.replace(/^Deleted blank picture row\.$/,'Пустая строка с картинкой удалена.');
+  x=x.replace(/^Deleted (\d+) selected rows?\.$/,'Удалено выбранных строк: $1.');
+  x=x.replace(/^Our picture added for “(.+)”\.$/,'Наша картинка добавлена для «$1».');
+  x=x.replace(/^Picture uploaded for “(.+)”\.$/,'Картинка загружена для «$1».');
+  x=x.replace(/^Searching picture for (.+)\.\.\.$/,'Ищем картинку для «$1»...');
+  x=x.replace(/^Search first to load more pictures for (.+)\.$/,'Сначала выполните поиск картинок для «$1».');
+  x=x.replace(/^Showing another picture for (.+)\.$/,'Показана другая картинка для «$1».');
+  x=x.replace(/^Inserted our built-in picture for (.+)\.$/,'Наша картинка вставлена для «$1».');
+  x=x.replace(/^Picture inserted for (.+)\.$/,'Картинка вставлена для «$1».');
+  return x;
+}
+function setStatus(message){searchStatus.textContent=translateDynamic(message);}
+
+function translateStaticDom(){
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const nodes=[];
+  while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{
+    if(!originalTextNodes.has(node))originalTextNodes.set(node,node.nodeValue);
+    const original=originalTextNodes.get(node);
+    const trimmed=original.trim();
+    if(!trimmed)return;
+    const translated=STATIC_RU[trimmed];
+    if(!translated)return;
+    const lead=original.match(/^\s*/)?.[0]||'';
+    const tail=original.match(/\s*$/)?.[0]||'';
+    node.nodeValue=lead+(uiLanguage==='ru'?translated:trimmed)+tail;
+  });
+
+  document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el=>{
+    let saved=originalAttrs.get(el);
+    if(!saved){
+      saved={};
+      for(const attr of ['placeholder','title','aria-label']){
+        if(el.hasAttribute(attr))saved[attr]=el.getAttribute(attr);
+      }
+      originalAttrs.set(el,saved);
+    }
+    for(const [attr,original] of Object.entries(saved)){
+      el.setAttribute(attr,uiLanguage==='ru'?(ATTR_RU[original]||original):original);
+    }
+  });
+}
+
+function updateProgressLanguage(){
+  if(cards.length&&usedCount)progressTitle.textContent=uiText(`Ticket ${usedCount} / ${cards.length}`,`Билет ${usedCount} / ${cards.length}`);
+  else progressTitle.textContent=uiText('Ticket 1 / 1','Билет 1 / 1');
+}
+function applyLanguage(shouldSave=true){
+  document.documentElement.lang=uiLanguage==='ru'?'ru':'en';
+  document.title=uiText('Scratch & Speak — Lottery Game','Scratch & Speak — Лотерея');
+  langRuBtn?.classList.toggle('active',uiLanguage==='ru');
+  langEnBtn?.classList.toggle('active',uiLanguage==='en');
+  translateStaticDom();
+  updateIntroToggle(false);
+  updateScoreboard(false);
+  updateProgressLanguage();
+  const defaultA=teamAName?.value;
+  const defaultB=teamBName?.value;
+  if(defaultA==='Team 1'||defaultA==='Команда 1')teamAName.value=uiText('Team 1','Команда 1');
+  if(defaultB==='Team 2'||defaultB==='Команда 2')teamBName.value=uiText('Team 2','Команда 2');
+  if(activeScratchLayers.length)requestAnimationFrame(()=>prepareScratchSurface());
+  if(shouldSave)saveState();
+}
+function setUiLanguage(lang){
+  uiLanguage=lang==='en'?'en':'ru';
+  applyLanguage();
+}
+
 const searchCache=new Map();
 const rowResultCaches=new Map();
 const rowResultIndices=new Map();
 
-function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({wordsText:wordsInput.value,mode:getMode(),shuffle:shuffleToggle.checked,imageStyle:imageStyleSelect.value,images:gatherImageState(),displayMode,teamAScore,teamBScore,teamAName:teamAName?.value||'Team 1',teamBName:teamBName?.value||'Team 2',scoreboardVisible,introEnabled,scratchCoinSize}));}
-function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=demoWords.join('\n');buildImageRows([]);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText||demoWords.join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=['tiny','small','large'].includes(data.scratchCoinSize)?data.scratchCoinSize:'large';updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=demoWords.join('\n');buildImageRows([]);updateScoreboard(false);updateIntroToggle(false);}}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({wordsText:wordsInput.value,mode:getMode(),shuffle:shuffleToggle.checked,imageStyle:imageStyleSelect.value,images:gatherImageState(),displayMode,teamAScore,teamBScore,teamAName:teamAName?.value||'Team 1',teamBName:teamBName?.value||'Team 2',scoreboardVisible,introEnabled,scratchCoinSize,uiLanguage}));}
+function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=demoWords.join('\n');buildImageRows([]);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText||demoWords.join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=['tiny','small','large'].includes(data.scratchCoinSize)?data.scratchCoinSize:'large';uiLanguage=data.uiLanguage==='en'?'en':'ru';updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=demoWords.join('\n');buildImageRows([]);updateScoreboard(false);updateIntroToggle(false);}}
 function refreshModeStyles(){document.querySelectorAll('.mode-option').forEach(el=>{const input=el.querySelector('input');el.classList.toggle('selected',input.checked);});}
 function getMode(){return document.querySelector('input[name="mode"]:checked')?.value||'word';}
 function parseWordsFromText(text){return text.split(/\r?\n|,|;/).map(v=>v.trim()).filter(Boolean);}
 function parseWords(){return parseWordsFromText(wordsInput.value);} 
 function makeButton(text,className,onClick){const btn=document.createElement('button');btn.type='button';btn.className=className;btn.textContent=text;btn.addEventListener('click',onClick);return btn;}
-function setStatus(message){searchStatus.textContent=message;}
 function newRowId(){return 'row_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);}
 function syncWordsInputFromRows(){
   const words=Array.from(document.querySelectorAll('.image-row .image-word-input'))
@@ -206,12 +426,12 @@ function normalizeWordList(){const words=parseWords();wordsInput.value=words.joi
 function dedupeWordList(){const seen=new Set();const words=[];for(const w of parseWords()){const key=w.toLowerCase();if(seen.has(key))continue;seen.add(key);words.push(w);}wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Duplicate words removed.');saveState();}
 function sortWordList(){const words=parseWords().sort((a,b)=>a.localeCompare(b));wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Word list sorted A–Z.');saveState();}
 function clearWordList(){wordsInput.value='';buildImageRows([]);setStatus('Word list cleared.');saveState();}
-function clearAllImages(){document.querySelectorAll('.image-row').forEach(row=>{const preview=row.querySelector('.image-preview');const url=row.querySelector('.image-url-input');if(preview){delete preview.dataset.src;clearBuiltinSprite(preview);preview.innerHTML='';preview.textContent='No image';}if(url)url.value='';});setStatus('All images cleared.');saveState();}
-function updateIntroToggle(shouldSave=true){introToggleBtn.textContent=`Cole intro: ${introEnabled?'ON':'OFF'}`;introToggleBtn.classList.toggle('active-toggle',introEnabled);introToggleBtn.classList.toggle('inactive-toggle',!introEnabled);if(shouldSave)saveState();}
+function clearAllImages(){document.querySelectorAll('.image-row').forEach(row=>{const preview=row.querySelector('.image-preview');const url=row.querySelector('.image-url-input');if(preview){delete preview.dataset.src;clearBuiltinSprite(preview);preview.innerHTML='';preview.textContent=uiText('No image','Нет картинки');}if(url)url.value='';});setStatus('All images cleared.');saveState();}
+function updateIntroToggle(shouldSave=true){introToggleBtn.textContent=uiLanguage==='ru'?`Интро с Коулом: ${introEnabled?'ВКЛ':'ВЫКЛ'}`:`Cole intro: ${introEnabled?'ON':'OFF'}`;introToggleBtn.classList.toggle('active-toggle',introEnabled);introToggleBtn.classList.toggle('inactive-toggle',!introEnabled);if(shouldSave)saveState();}
 function toggleIntroEnabled(){introEnabled=!introEnabled;updateIntroToggle();}
 function previewColeIntro(){showIntroOverlay(()=>{});}
 
-function updateScoreboard(shouldSave=true){teamAScoreEl.textContent=String(teamAScore);teamBScoreEl.textContent=String(teamBScore);scoreboardPanel.classList.toggle('hidden',!scoreboardVisible);scoreboardBtn.textContent=scoreboardVisible?'Hide scoreboard':'Scoreboard';if(shouldSave)saveState();}
+function updateScoreboard(shouldSave=true){teamAScoreEl.textContent=String(teamAScore);teamBScoreEl.textContent=String(teamBScore);scoreboardPanel.classList.toggle('hidden',!scoreboardVisible);scoreboardBtn.textContent=scoreboardVisible?uiText('Hide scoreboard','Скрыть счёт'):uiText('Scoreboard','Счёт');if(shouldSave)saveState();}
 function changeScore(team,delta){if(team==='a')teamAScore+=delta;else teamBScore+=delta;updateScoreboard();}
 function toggleScoreboard(){scoreboardVisible=!scoreboardVisible;updateScoreboard();}
 function resetScores(){teamAScore=0;teamBScore=0;updateScoreboard();}
@@ -465,7 +685,7 @@ function deleteWordRow(row){
 
   if(!document.querySelector('.image-row')){
     imageRows.className='image-rows empty-state-box';
-    imageRows.innerHTML='<p>Add your words below.</p>';
+    imageRows.innerHTML='<p>'+uiText('Add your words below.','Добавьте слова или картинки ниже.')+'</p>';
   }
 
   setStatus(label ? 'Deleted “'+label+'”.' : 'Deleted blank picture row.');
@@ -486,7 +706,7 @@ function deleteSelectedWord(){
 
   if(!document.querySelector('.image-row')){
     imageRows.className='image-rows empty-state-box';
-    imageRows.innerHTML='<p>Add your words below.</p>';
+    imageRows.innerHTML='<p>'+uiText('Add your words below.','Добавьте слова или картинки ниже.')+'</p>';
   }
 
   setStatus('Deleted '+checked.length+' selected row'+(checked.length===1?'':'s')+'.');
@@ -530,7 +750,7 @@ function buildImageRows(existing=[]){
 
   if(!rowItems.length){
     imageRows.className='image-rows empty-state-box';
-    imageRows.innerHTML='<p>Add your words below.</p>';
+    imageRows.innerHTML='<p>'+uiText('Add your words below.','Добавьте слова или картинки ниже.')+'</p>';
     saveState();
     return;
   }
@@ -545,7 +765,7 @@ function buildImageRows(existing=[]){
 
     const selectWrap=document.createElement('label');
     selectWrap.className='row-select-wrap';
-    selectWrap.title='Select for bulk delete';
+    selectWrap.title=uiText('Select for bulk delete','Выбрать для удаления');
 
     const selectBox=document.createElement('input');
     selectBox.type='checkbox';
@@ -555,12 +775,12 @@ function buildImageRows(existing=[]){
     const wordInput=document.createElement('input');
     wordInput.className='image-word-input';
     wordInput.value=item.word||'';
-    wordInput.placeholder='Optional word';
+    wordInput.placeholder=uiText('Optional word','Слово (необязательно)');
     wordInput.autocomplete='off';
 
     const preview=document.createElement('div');
     preview.className='image-preview';
-    preview.textContent='No image';
+    preview.textContent=uiText('No image','Нет картинки');
 
     const tools=document.createElement('div');
     tools.className='row-tools';
@@ -579,7 +799,7 @@ function buildImageRows(existing=[]){
         preview.innerHTML=`<img src="${src}" alt="${escapeHtml(currentWord()||'Picture')}">`;
       }else{
         delete preview.dataset.src;
-        preview.textContent='No image';
+        preview.textContent=uiText('No image','Нет картинки');
       }
       saveState();
     }
@@ -613,7 +833,7 @@ function buildImageRows(existing=[]){
       saveState();
     });
 
-    const localBtn=makeButton('Our picture','mini-btn our-pic-btn',e=>{
+    const localBtn=makeButton(uiText('Our picture','Наша картинка'),'mini-btn our-pic-btn',e=>{
       e.stopPropagation();
       selectImageRow(row);
       const word=currentWord();
@@ -635,7 +855,7 @@ function buildImageRows(existing=[]){
       setStatus('Yandex opened for “'+word+'”. Copy the picture, return here and press Ctrl+V.');
     });
 
-    const uploadBtn=makeButton('Upload','mini-btn',e=>{
+    const uploadBtn=makeButton(uiText('Upload','Загрузить'),'mini-btn',e=>{
       e.stopPropagation();
       selectImageRow(row);
       fileInput.click();
@@ -645,7 +865,7 @@ function buildImageRows(existing=[]){
       e.stopPropagation();
       deleteWordRow(row);
     });
-    deleteBtn.title='Delete row';
+    deleteBtn.title=uiText('Delete row','Удалить строку');
 
     fileInput.addEventListener('change',async e=>{
       const file=e.target.files?.[0];
@@ -691,8 +911,8 @@ async function getCuratedResultsForWord(word,page=1){const builtin=builtinResult
 function setRowResults(word,results){const key=cacheKey(word);rowResultCaches.set(key,results||[]);if(!rowResultIndices.has(key))rowResultIndices.set(key,0);updateRowNextButton(word);}function getRowResults(word){return rowResultCaches.get(cacheKey(word))||[];}
 function updateRowNextButton(word){const row=[...document.querySelectorAll('.image-row')].find(r=>r.word===word);if(!row||!row.nextBtn)return;row.nextBtn.disabled=getRowResults(word).length<2;}
 function cycleRowPicture(word,row){const key=cacheKey(word);const results=getRowResults(word);if(results.length<2){setStatus(`Search first to load more pictures for ${word}.`);return;}let index=(rowResultIndices.get(key)??0)+1;if(index>=results.length)index=0;rowResultIndices.set(key,index);row.setImage(results[index].url);setStatus(`Showing another picture for ${word}.`);}
-function openImageModal(row,word){modalRowTarget=row;modalWord=word;modalPage=1;modalQueryIndex=0;modalBaseQueries=buildSmartQueries(word);modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');modalTitle.textContent=`Choose a picture for “${word}”`;modalSearchInput.value=modalBaseQueries[0];modalResults.innerHTML='';modalMessage.textContent='Loading pictures...';fetchModalResults(true);}function closeImageModal(){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');modalRowTarget=null;modalResults.innerHTML='';}
-async function fetchModalResults(reset=false){const rawQuery=modalSearchInput.value.trim();if(!rawQuery)return;if(reset)modalPage=modalPage||1;modalResults.innerHTML='';modalMessage.textContent='Loading pictures...';modalMoreBtn.disabled=true;try{const builtin=builtinResultItem(modalWord);let results=await fetchOpenverse(rawQuery,modalPage);if(!results.length&&modalQueryIndex+1<modalBaseQueries.length){modalQueryIndex+=1;modalSearchInput.value=modalBaseQueries[modalQueryIndex];results=await fetchOpenverse(modalSearchInput.value,modalPage);}results=dedupeByUrl(results);results.sort((a,b)=>(positiveScore(b.title,b.creator,modalWord)+negativeScore(b.title))-(positiveScore(a.title,a.creator,modalWord)+negativeScore(a.title)));if(builtin){results=[builtin,...results.filter(item=>(item.fullUrl||item.url)!==(builtin.fullUrl||builtin.url))];}if(!results.length){modalMessage.textContent='No pictures found. Try another word.';modalMoreBtn.disabled=false;return;}setRowResults(modalWord,results);rowResultIndices.set(cacheKey(modalWord),0);updateRowNextButton(modalWord);modalMessage.textContent=builtin?'Our picture pack is shown first. Then you can choose from general search results.':'Click a picture to insert it automatically.';for(const item of results){const tile=document.createElement('button');tile.type='button';tile.className='result-tile';if(isBuiltinSrc(item.thumb)){const thumb=document.createElement('div');thumb.className='result-thumb';thumb.appendChild(makeBuiltinSprite(builtinKeyFromSrc(item.thumb),'modal-builtin-sprite'));tile.appendChild(thumb);tile.insertAdjacentHTML('beforeend',`<div class="use-badge">Our picture</div><div class="result-caption">${escapeHtml(item.title)}</div>`);}else{tile.innerHTML=`<div class="result-thumb"><img src="${item.thumb}" alt="${escapeHtml(item.title)}"></div><div class="use-badge">${item.isBuiltin?'Our picture':'Use this picture'}</div><div class="result-caption">${escapeHtml(item.title)}</div>`;}tile.addEventListener('click',()=>{if(modalRowTarget?.setImage){modalRowTarget.setImage(item.url);const list=getRowResults(modalWord);const idx=list.findIndex(x=>(x.fullUrl||x.url)===(item.fullUrl||item.url));if(idx>=0)rowResultIndices.set(cacheKey(modalWord),idx);setStatus(item.isBuiltin?`Inserted our built-in picture for ${modalRowTarget.word}.`:`Picture inserted for ${modalRowTarget.word}.`);}closeImageModal();});modalResults.appendChild(tile);}modalMoreBtn.disabled=false;}catch{modalMessage.textContent='Could not load pictures right now.';modalMoreBtn.disabled=false;}}
+function openImageModal(row,word){modalRowTarget=row;modalWord=word;modalPage=1;modalQueryIndex=0;modalBaseQueries=buildSmartQueries(word);modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');modalTitle.textContent=uiText(`Choose a picture for “${word}”`,`Выберите картинку для «${word}»`);modalSearchInput.value=modalBaseQueries[0];modalResults.innerHTML='';modalMessage.textContent=uiText('Loading pictures...','Загружаем картинки...');fetchModalResults(true);}function closeImageModal(){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');modalRowTarget=null;modalResults.innerHTML='';}
+async function fetchModalResults(reset=false){const rawQuery=modalSearchInput.value.trim();if(!rawQuery)return;if(reset)modalPage=modalPage||1;modalResults.innerHTML='';modalMessage.textContent=uiText('Loading pictures...','Загружаем картинки...');modalMoreBtn.disabled=true;try{const builtin=builtinResultItem(modalWord);let results=await fetchOpenverse(rawQuery,modalPage);if(!results.length&&modalQueryIndex+1<modalBaseQueries.length){modalQueryIndex+=1;modalSearchInput.value=modalBaseQueries[modalQueryIndex];results=await fetchOpenverse(modalSearchInput.value,modalPage);}results=dedupeByUrl(results);results.sort((a,b)=>(positiveScore(b.title,b.creator,modalWord)+negativeScore(b.title))-(positiveScore(a.title,a.creator,modalWord)+negativeScore(a.title)));if(builtin){results=[builtin,...results.filter(item=>(item.fullUrl||item.url)!==(builtin.fullUrl||builtin.url))];}if(!results.length){modalMessage.textContent=uiText('No pictures found. Try another word.','Картинки не найдены. Попробуйте другое слово.');modalMoreBtn.disabled=false;return;}setRowResults(modalWord,results);rowResultIndices.set(cacheKey(modalWord),0);updateRowNextButton(modalWord);modalMessage.textContent=builtin?uiText('Our picture pack is shown first. Then you can choose from general search results.','Сначала показана наша база картинок, затем — результаты общего поиска.'):uiText('Click a picture to insert it automatically.','Нажмите на картинку, чтобы вставить её.');for(const item of results){const tile=document.createElement('button');tile.type='button';tile.className='result-tile';if(isBuiltinSrc(item.thumb)){const thumb=document.createElement('div');thumb.className='result-thumb';thumb.appendChild(makeBuiltinSprite(builtinKeyFromSrc(item.thumb),'modal-builtin-sprite'));tile.appendChild(thumb);tile.insertAdjacentHTML('beforeend',`<div class="use-badge">${uiText('Our picture','Наша картинка')}</div><div class="result-caption">${escapeHtml(item.title)}</div>`);}else{tile.innerHTML=`<div class="result-thumb"><img src="${item.thumb}" alt="${escapeHtml(item.title)}"></div><div class="use-badge">${item.isBuiltin?uiText('Our picture','Наша картинка'):uiText('Use this picture','Использовать')}</div><div class="result-caption">${escapeHtml(item.title)}</div>`;}tile.addEventListener('click',()=>{if(modalRowTarget?.setImage){modalRowTarget.setImage(item.url);const list=getRowResults(modalWord);const idx=list.findIndex(x=>(x.fullUrl||x.url)===(item.fullUrl||item.url));if(idx>=0)rowResultIndices.set(cacheKey(modalWord),idx);setStatus(item.isBuiltin?`Inserted our built-in picture for ${modalRowTarget.word}.`:`Picture inserted for ${modalRowTarget.word}.`);}closeImageModal();});modalResults.appendChild(tile);}modalMoreBtn.disabled=false;}catch{modalMessage.textContent='Could not load pictures right now.';modalMoreBtn.disabled=false;}}
 async function autoFillAllImages(){const rows=Array.from(document.querySelectorAll('.image-row'));if(!rows.length)return;autoFillAllBtn.disabled=true;let ok=0,miss=0,builtinCount=0;for(const row of rows){if(row.previewBox?.dataset?.src)continue;setStatus(`Searching picture for ${row.word}...`);try{const {results,best}=await getCuratedResultsForWord(row.word,1);setRowResults(row.word,results);if(best){row.setImage(best.url);ok+=1;if(best.source==='builtin')builtinCount+=1;}else miss+=1;}catch{miss+=1;}await new Promise(r=>setTimeout(r,160));}setStatus(`Auto-fill finished: ${ok} added, ${miss} missed. Built-in pack used first for ${builtinCount} word(s).`);autoFillAllBtn.disabled=false;document.querySelectorAll('.image-row').forEach(r=>updateRowNextButton(r.word));}
 function resetIntroAnimation(){introStage.classList.remove('playing');void introStage.offsetWidth;introStage.classList.add('playing');}
 function finishIntroAction(){const action=introPendingAction;introPendingAction=null;hideIntroOverlay(false);if(typeof action==='function')action();}
@@ -717,8 +937,8 @@ function handleNextTicket(){
   loadNextCard();
 }
 
-function startGameWithIntro(){mode=getMode();cards=buildCards();if(!cards.length)return alert('Add at least one word first.');if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert('Picture modes need a picture for every word.');if(!introEnabled){hideIntroOverlay();startGame();return;}showIntroOverlay(()=>startGame());}
-function startGame(){mode=getMode();cards=buildCards();if(!cards.length)return alert('Add at least one word first.');if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert('Picture modes need a picture for every word.');deck=shuffled(cards);usedCount=0;hideRoundEnd();setupScreen.classList.remove('active');gameScreen.classList.add('active');loadNextCard();saveState();}
+function startGameWithIntro(){mode=getMode();cards=buildCards();if(!cards.length)return alert(uiText('Add at least one word first.','Сначала добавьте хотя бы одно слово или картинку.'));if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert(uiText('Picture modes need a picture for every word.','В режиме с картинками для каждого билета нужна картинка.'));if(!introEnabled){hideIntroOverlay();startGame();return;}showIntroOverlay(()=>startGame());}
+function startGame(){mode=getMode();cards=buildCards();if(!cards.length)return alert(uiText('Add at least one word first.','Сначала добавьте хотя бы одно слово или картинку.'));if(mode!=='word'&&cards.some(card=>!card.imageSrc))return alert(uiText('Picture modes need a picture for every word.','В режиме с картинками для каждого билета нужна картинка.'));deck=shuffled(cards);usedCount=0;hideRoundEnd();setupScreen.classList.remove('active');gameScreen.classList.add('active');loadNextCard();saveState();}
 function loadNextCard(){
   if(!deck.length){
     showRoundEnd();
@@ -730,7 +950,7 @@ function loadNextCard(){
 
   current=deck.shift();
   usedCount+=1;
-  progressTitle.textContent=`Ticket ${usedCount} / ${cards.length}`;
+  progressTitle.textContent=uiText(`Ticket ${usedCount} / ${cards.length}`,`Билет ${usedCount} / ${cards.length}`);
   revealedEnough=false;
   nextBtn.disabled=false;
 
@@ -903,7 +1123,7 @@ function prepareScratchSurface(){
   }
   lastScratchPoint=null;
 }
-function drawScratchFieldLocal(c,x,y,w,h,r){const silver=c.createLinearGradient(x,y,x+w,y+h);silver.addColorStop(0,'#7f8da6');silver.addColorStop(.12,'#eef3fb');silver.addColorStop(.28,'#aeb9cc');silver.addColorStop(.46,'#fbfdff');silver.addColorStop(.64,'#c7d0df');silver.addColorStop(.82,'#f4f7fb');silver.addColorStop(1,'#8794aa');roundRect(c,x,y,w,h,r);c.fillStyle=silver;c.fill();c.save();roundRect(c,x,y,w,h,r);c.clip();c.globalAlpha=.15;const stripe=Math.max(18,Math.round(w/17));for(let xx=-h;xx<w+h;xx+=stripe*2){c.save();c.translate(xx,0);c.rotate(-.28);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(0,y,stripe*.56,h*1.5);c.restore();}c.globalAlpha=.16;for(let i=0;i<210;i++){c.fillStyle=i%5?'rgba(255,255,255,.36)':'rgba(77,88,111,.30)';c.beginPath();c.arc(Math.random()*w,Math.random()*h,Math.random()*1.8+.35,0,Math.PI*2);c.fill();}c.globalAlpha=.24;c.fillStyle='#5f6c83';c.textAlign='center';c.textBaseline='middle';c.font=`800 ${Math.max(14,Math.min(25,h*.105))}px Inter, sans-serif`;c.fillText('✦  SCRATCH HERE  ✦',x+w/2,y+h/2);c.restore();c.strokeStyle='rgba(95,107,131,.58)';c.lineWidth=2;roundRect(c,x+1,y+1,w-2,h-2,Math.max(4,r-1));c.stroke();}
+function drawScratchFieldLocal(c,x,y,w,h,r){const silver=c.createLinearGradient(x,y,x+w,y+h);silver.addColorStop(0,'#7f8da6');silver.addColorStop(.12,'#eef3fb');silver.addColorStop(.28,'#aeb9cc');silver.addColorStop(.46,'#fbfdff');silver.addColorStop(.64,'#c7d0df');silver.addColorStop(.82,'#f4f7fb');silver.addColorStop(1,'#8794aa');roundRect(c,x,y,w,h,r);c.fillStyle=silver;c.fill();c.save();roundRect(c,x,y,w,h,r);c.clip();c.globalAlpha=.15;const stripe=Math.max(18,Math.round(w/17));for(let xx=-h;xx<w+h;xx+=stripe*2){c.save();c.translate(xx,0);c.rotate(-.28);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(0,y,stripe*.56,h*1.5);c.restore();}c.globalAlpha=.16;for(let i=0;i<210;i++){c.fillStyle=i%5?'rgba(255,255,255,.36)':'rgba(77,88,111,.30)';c.beginPath();c.arc(Math.random()*w,Math.random()*h,Math.random()*1.8+.35,0,Math.PI*2);c.fill();}c.globalAlpha=.24;c.fillStyle='#5f6c83';c.textAlign='center';c.textBaseline='middle';c.font=`800 ${Math.max(14,Math.min(25,h*.105))}px Inter, sans-serif`;c.fillText(uiText('✦  SCRATCH HERE  ✦','✦  СОТРИ ЗДЕСЬ  ✦'),x+w/2,y+h/2);c.restore();c.strokeStyle='rgba(95,107,131,.58)';c.lineWidth=2;roundRect(c,x+1,y+1,w-2,h-2,Math.max(4,r-1));c.stroke();}
 function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
 function findScratchLayer(canvas){return activeScratchLayers.find(l=>l.canvas===canvas);}
 function scratchStampLocal(layer,x,y,size){
@@ -950,7 +1170,7 @@ function playFanfare(){const ac=getAudio(),now=ac.currentTime,notes=[523.25,659.
 function playIntroShowSound(){try{const ac=getAudio();ac.resume?.();const now=ac.currentTime+.02;const noiseDur=1.5;const bufferSize=Math.floor(ac.sampleRate*noiseDur),buffer=ac.createBuffer(1,bufferSize,ac.sampleRate),data=buffer.getChannelData(0);let smooth=0;for(let i=0;i<bufferSize;i++){const white=Math.random()*2-1;smooth=smooth*.92+white*.08;const env=Math.min(1,i/(ac.sampleRate*.08))*Math.max(0,1-i/bufferSize);data[i]=smooth*.42*env;}const src=ac.createBufferSource();src.buffer=buffer;const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.setValueAtTime(180,now);bp.frequency.linearRampToValueAtTime(320,now+1.2);bp.Q.value=.55;const g=ac.createGain();g.gain.setValueAtTime(.0001,now);g.gain.linearRampToValueAtTime(.07,now+.08);g.gain.linearRampToValueAtTime(.045,now+1.0);g.gain.exponentialRampToValueAtTime(.0001,now+noiseDur);src.connect(bp).connect(g).connect(ac.destination);src.start(now);src.stop(now+noiseDur);for(let i=0;i<6;i++){const t=now+.18+i*.18;const osc=ac.createOscillator(),og=ac.createGain();osc.type='sine';osc.frequency.setValueAtTime(320+i*22,t);og.gain.setValueAtTime(.0001,t);og.gain.linearRampToValueAtTime(.012,t+.01);og.gain.exponentialRampToValueAtTime(.0001,t+.12);osc.connect(og).connect(ac.destination);osc.start(t);osc.stop(t+.13);}const pingT=now+1.56;[880,1174,1568].forEach((f,i)=>{const osc=ac.createOscillator(),og=ac.createGain();osc.type='triangle';osc.frequency.setValueAtTime(f,pingT+i*.03);og.gain.setValueAtTime(.0001,pingT+i*.03);og.gain.linearRampToValueAtTime(.04,pingT+i*.03+.015);og.gain.exponentialRampToValueAtTime(.0001,pingT+i*.03+.35);osc.connect(og).connect(ac.destination);osc.start(pingT+i*.03);osc.stop(pingT+i*.03+.4);});const whooshT=now+2.55;const whooshDur=1.0;const wb=ac.createBuffer(1,Math.floor(ac.sampleRate*whooshDur),ac.sampleRate),wd=wb.getChannelData(0);for(let i=0;i<wd.length;i++){wd[i]=(Math.random()*2-1)*(1-i/wd.length);}const ws=ac.createBufferSource();ws.buffer=wb;const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.setValueAtTime(600,whooshT);const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(5200,whooshT);const wg=ac.createGain();wg.gain.setValueAtTime(.0001,whooshT);wg.gain.linearRampToValueAtTime(.055,whooshT+.12);wg.gain.exponentialRampToValueAtTime(.0001,whooshT+whooshDur);ws.playbackRate.setValueAtTime(.92,whooshT);ws.playbackRate.linearRampToValueAtTime(1.14,whooshT+whooshDur);ws.connect(hp).connect(lp).connect(wg).connect(ac.destination);ws.start(whooshT);ws.stop(whooshT+whooshDur);}catch(e){}}
 function fireConfetti(){confettiCanvas.classList.remove('hidden');const dpr=window.devicePixelRatio||1;confettiCanvas.width=window.innerWidth*dpr;confettiCanvas.height=window.innerHeight*dpr;confettiCtx.setTransform(1,0,0,1,0,0);confettiCtx.scale(dpr,dpr);confettiParticles=Array.from({length:150},()=>({x:window.innerWidth/2+(Math.random()*220-110),y:window.innerHeight*.25+(Math.random()*20-10),vx:Math.random()*8-4,vy:Math.random()*-8-2,size:Math.random()*8+5,rot:Math.random()*Math.PI,vr:Math.random()*.3-.15,color:['#6f56f8','#04b7ff','#ffd764','#ff7f7f','#7af0b0'][Math.floor(Math.random()*5)],life:80+Math.random()*24}));if(!confettiAnimating)animateConfetti();}
 function animateConfetti(){confettiAnimating=true;confettiCtx.clearRect(0,0,window.innerWidth,window.innerHeight);confettiParticles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.16;p.rot+=p.vr;p.life-=1;confettiCtx.save();confettiCtx.translate(p.x,p.y);confettiCtx.rotate(p.rot);confettiCtx.fillStyle=p.color;confettiCtx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.64);confettiCtx.restore();});confettiParticles=confettiParticles.filter(p=>p.life>0&&p.y<window.innerHeight+30);if(confettiParticles.length)requestAnimationFrame(animateConfetti);else{confettiAnimating=false;confettiCanvas.classList.add('hidden');confettiCtx.clearRect(0,0,window.innerWidth,window.innerHeight);}}
-function importWordsFile(file){file.text().then(text=>{const words=parseWordsFromText(text);if(!words.length)return alert('Could not find words in this file.');wordsInput.value=words.join('\n');buildImageRows(gatherImageState());saveState();});}
+function importWordsFile(file){file.text().then(text=>{const words=parseWordsFromText(text);if(!words.length)return alert(uiText('Could not find words in this file.','В файле не удалось найти слова.'));wordsInput.value=words.join('\n');buildImageRows(gatherImageState());saveState();});}
 function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}
 function exitToSettings(){hideIntroOverlay();gameScreen.classList.remove('active');setupScreen.classList.add('active');saveState();}
 function restartDeck(){deck=shuffled(cards);usedCount=0;hideRoundEnd();loadNextCard();}
@@ -970,7 +1190,7 @@ addWordBtn?.addEventListener('click',addWordInteractive);
 addWordPicturesBtn?.addEventListener('click',addWordInteractive);
 builtinFillBtn.addEventListener('click',fillBuiltinPictures);
 clearAllImagesBtn.addEventListener('click',clearAllImages);
-startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);coinTinyBtn?.addEventListener('click',()=>setScratchCoinSize('tiny'));coinSmallBtn?.addEventListener('click',()=>setScratchCoinSize('small'));coinLargeBtn?.addEventListener('click',()=>setScratchCoinSize('large'));nextBtn.addEventListener('click',handleNextTicket);playAgainBtn?.addEventListener('click',restartDeck);roundSettingsBtn?.addEventListener('click',()=>{hideRoundEnd();exitToSettings();});fullscreenBtn.addEventListener('click',toggleFullscreen);
+startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventListener('click',toggleIntroEnabled);previewIntroBtn.addEventListener('click',previewColeIntro);skipIntroBtn.addEventListener('click',skipIntro);teacherModeBtn.addEventListener('click',()=>applyDisplayMode('teacher'));kidsModeBtn.addEventListener('click',()=>applyDisplayMode('kids'));classViewBtn.addEventListener('click',openClassView);scoreboardBtn.addEventListener('click',toggleScoreboard);scoreHideBtn.addEventListener('click',()=>{scoreboardVisible=false;updateScoreboard();});scoreResetBtn.addEventListener('click',resetScores);document.querySelectorAll('[data-team][data-delta]').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.team,Number(btn.dataset.delta))));teamAName.addEventListener('input',saveState);teamBName.addEventListener('input',saveState);backBtn.addEventListener('click',exitToSettings);restartBtn.addEventListener('click',restartDeck);clearBtn.addEventListener('click',revealAll);coinTinyBtn?.addEventListener('click',()=>setScratchCoinSize('tiny'));coinSmallBtn?.addEventListener('click',()=>setScratchCoinSize('small'));coinLargeBtn?.addEventListener('click',()=>setScratchCoinSize('large'));nextBtn.addEventListener('click',handleNextTicket);playAgainBtn?.addEventListener('click',restartDeck);roundSettingsBtn?.addEventListener('click',()=>{hideRoundEnd();exitToSettings();});fullscreenBtn.addEventListener('click',toggleFullscreen);langRuBtn?.addEventListener('click',()=>setUiLanguage('ru'));langEnBtn?.addEventListener('click',()=>setUiLanguage('en'));
 showWordBtn.addEventListener('click',()=>{resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();});
 closeModalBtn.addEventListener('click',closeImageModal);modal.querySelector('[data-close-modal]').addEventListener('click',closeImageModal);
 modalSearchBtn.addEventListener('click',()=>{modalPage=1;fetchModalResults(true);});modalMoreBtn.addEventListener('click',()=>{modalPage+=1;fetchModalResults(true);});modalSearchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){modalPage=1;fetchModalResults(true);}});
@@ -1023,4 +1243,4 @@ let isDown=false;
   canvas.addEventListener('pointerleave',()=>{lastScratchPoint=null;});
 });
 window.addEventListener('pointerup',()=>{isDown=false;lastScratchPoint=null;});
-loadState();updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);if(!document.querySelector('.image-row'))buildImageRows(gatherImageState());
+loadState();applyLanguage(false);updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);if(!document.querySelector('.image-row'))buildImageRows(gatherImageState());
