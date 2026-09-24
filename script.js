@@ -308,7 +308,8 @@ function translateDynamic(message){
   x=x.replace(/^Picture inserted for (.+)\.$/,'Картинка вставлена для «$1».');
   return x;
 }
-function setStatus(message){searchStatus.textContent=translateDynamic(message);}
+let lastStatusMessage='';
+function setStatus(message){lastStatusMessage=String(message??'');searchStatus.textContent=translateDynamic(lastStatusMessage);}
 
 function translateStaticDom(){
   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
@@ -345,12 +346,34 @@ function updateProgressLanguage(){
   if(cards.length&&usedCount)progressTitle.textContent=uiText(`Ticket ${usedCount} / ${cards.length}`,`Билет ${usedCount} / ${cards.length}`);
   else progressTitle.textContent=uiText('Ticket 1 / 1','Билет 1 / 1');
 }
+function refreshDynamicLanguage(){
+  document.querySelectorAll('.image-row').forEach(row=>{
+    const wordInput=row.querySelector('.image-word-input');
+    if(wordInput)wordInput.placeholder=uiText('Optional word','Слово (необязательно)');
+    const selectWrap=row.querySelector('.row-select-wrap');
+    if(selectWrap)selectWrap.title=uiText('Select for bulk delete','Выбрать для удаления');
+    const local=row.querySelector('.our-pic-btn');
+    if(local)local.textContent=uiText('Our picture','Наша картинка');
+    const upload=row.querySelector('.upload-pic-btn');
+    if(upload)upload.textContent=uiText('Upload','Загрузить');
+    const del=row.querySelector('.icon-delete-btn');
+    if(del)del.title=uiText('Delete row','Удалить строку');
+    const preview=row.querySelector('.image-preview');
+    if(preview&&!preview.dataset.src)preview.textContent=uiText('No image','Нет картинки');
+  });
+  if(!document.querySelector('.image-row')&&imageRows?.querySelector('p')){
+    imageRows.querySelector('p').textContent=uiText('Add your words below.','Добавьте слова или картинки ниже.');
+  }
+  if(lastStatusMessage)searchStatus.textContent=translateDynamic(lastStatusMessage);
+}
+
 function applyLanguage(shouldSave=true){
   document.documentElement.lang=uiLanguage==='ru'?'ru':'en';
   document.title=uiText('Scratch & Speak — Lottery Game','Scratch & Speak — Лотерея');
   langRuBtn?.classList.toggle('active',uiLanguage==='ru');
   langEnBtn?.classList.toggle('active',uiLanguage==='en');
   translateStaticDom();
+  refreshDynamicLanguage();
   updateIntroToggle(false);
   updateScoreboard(false);
   updateProgressLanguage();
@@ -358,6 +381,7 @@ function applyLanguage(shouldSave=true){
   const defaultB=teamBName?.value;
   if(defaultA==='Team 1'||defaultA==='Команда 1')teamAName.value=uiText('Team 1','Команда 1');
   if(defaultB==='Team 2'||defaultB==='Команда 2')teamBName.value=uiText('Team 2','Команда 2');
+  if(modalWord&&!modal.classList.contains('hidden'))modalTitle.textContent=uiText(`Choose a picture for “${modalWord}”`,`Выберите картинку для «${modalWord}»`);
   if(activeScratchLayers.length)requestAnimationFrame(()=>prepareScratchSurface());
   if(shouldSave)saveState();
 }
@@ -855,7 +879,7 @@ function buildImageRows(existing=[]){
       setStatus('Yandex opened for “'+word+'”. Copy the picture, return here and press Ctrl+V.');
     });
 
-    const uploadBtn=makeButton(uiText('Upload','Загрузить'),'mini-btn',e=>{
+    const uploadBtn=makeButton(uiText('Upload','Загрузить'),'mini-btn upload-pic-btn',e=>{
       e.stopPropagation();
       selectImageRow(row);
       fileInput.click();
