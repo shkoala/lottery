@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Comic+Neue:wght@400;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=final15" rel="stylesheet"/>
+<link href="style.css?v=final16" rel="stylesheet"/>
 </head>
 <body>
 <main class="app-shell">
@@ -22,7 +22,13 @@
 <h1>Scratch ticket game</h1>
 <p class="subtext">A bright lottery-style classroom game with a built-in picture pack, optional Cole intro, scratch sound, two-team scoreboard, full-screen class view and confetti.</p>
 </div>
-<button class="ghost-btn" id="fullscreenBtn" type="button">⛶ Full screen</button>
+<div class="setup-header-actions">
+    <div class="language-switcher" aria-label="Interface language">
+      <button class="lang-btn active" id="langRuBtn" type="button" aria-label="Русский интерфейс">RU</button>
+      <button class="lang-btn" id="langEnBtn" type="button" aria-label="English interface">EN</button>
+    </div>
+    <button class="ghost-btn" id="fullscreenBtn" type="button">⛶ Full screen</button>
+  </div>
 </div>
 <div class="hero-banner">
 <div class="hero-copy">
@@ -250,6 +256,6 @@ holiday" spellcheck="false"></textarea>
     </div>
   </div>
 </div>
-<script src="script.js?v=final15"></script>
+<script src="script.js?v=final16"></script>
 </body>
 </html>
