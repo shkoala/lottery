@@ -131,7 +131,7 @@ function builtinKeyFromSrc(src){return isBuiltinSrc(src)?src.slice(8):'';}
 function clearBuiltinSprite(el){if(!el)return;el.style.backgroundImage='';el.style.backgroundSize='';el.style.backgroundPosition='';el.style.backgroundRepeat='';el.style.backgroundColor='';delete el.dataset.builtinKey;}
 function applyBuiltinSprite(el,key){if(!el||!BUILTIN_RECTS[key])return;const [ai,x,y,w,h]=BUILTIN_RECTS[key],atlas=BUILTIN_ATLASES[ai];el.dataset.builtinKey=key;el.style.backgroundImage=`url("${atlas.src}")`;el.style.backgroundRepeat='no-repeat';el.style.backgroundColor='#fff';const r=el.getBoundingClientRect();const box=Math.max(1,Math.min(r.width||w,r.height||h));const scale=box/w;el.style.backgroundSize=`${atlas.width*scale}px ${atlas.height*scale}px`;el.style.backgroundPosition=`${((r.width||box)-box)/2-x*scale}px ${((r.height||box)-box)/2-y*scale}px`;}
 function makeBuiltinSprite(key,className='builtin-sprite'){const el=document.createElement('div');el.className=className;requestAnimationFrame(()=>applyBuiltinSprite(el,key));return el;}
-function builtinPictureForWord(word){let key=String(word||'').trim().toLowerCase().replace(/\s+/g,' ');key=BUILTIN_ALIASES[key]||key;return BUILTIN_LOCAL[key]||'';}
+function builtinPictureForWord(word){let key=String(word||'').trim().toLowerCase().replace(/\s+/g,' ');key=PRESET_RU_TO_EN[key]||BUILTIN_ALIASES[key]||key;return BUILTIN_LOCAL[key]||'';}
 function builtinResultItem(word){const src=builtinPictureForWord(word);if(!src)return null;return {title:`SHKOALA picture for ${word}`,creator:'SHKOALA',thumb:src,url:src,fullUrl:src,width:360,height:280,source:'builtin',isBuiltin:true};}
 function fillBuiltinPictures(){let added=0;document.querySelectorAll('.image-row').forEach(row=>{const src=builtinPictureForWord(row.word);if(src){row.setImage(src);added++;}});setStatus(added?`Added ${added} bright built-in pictures. No web search needed for them.`:'No matching words in the built-in RU/EN picture pack yet.');saveState();}
 
@@ -147,6 +147,220 @@ const COIN_CURSOR_TINY=makeCoinCursor(38,13,13,19);
 
 
 let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null,scratchCoinSize='large',uiLanguage='ru';
+const PRESET_RU={
+  "cat": "кот",
+  "dog": "собака",
+  "rabbit": "кролик",
+  "hamster": "хомяк",
+  "parrot": "попугай",
+  "fish": "рыба",
+  "turtle": "черепаха",
+  "guinea pig": "морская свинка",
+  "cow": "корова",
+  "pig": "свинья",
+  "sheep": "овца",
+  "goat": "коза",
+  "horse": "лошадь",
+  "hen": "курица",
+  "duck": "утка",
+  "donkey": "осёл",
+  "rooster": "петух",
+  "lion": "лев",
+  "tiger": "тигр",
+  "elephant": "слон",
+  "giraffe": "жираф",
+  "zebra": "зебра",
+  "monkey": "обезьяна",
+  "panda": "панда",
+  "bear": "медведь",
+  "wolf": "волк",
+  "fox": "лиса",
+  "deer": "олень",
+  "squirrel": "белка",
+  "hedgehog": "ёж",
+  "owl": "сова",
+  "crocodile": "крокодил",
+  "hippo": "бегемот",
+  "dolphin": "дельфин",
+  "whale": "кит",
+  "shark": "акула",
+  "octopus": "осьминог",
+  "crab": "краб",
+  "starfish": "морская звезда",
+  "apple": "яблоко",
+  "banana": "банан",
+  "orange": "апельсин",
+  "grapes": "виноград",
+  "strawberry": "клубника",
+  "watermelon": "арбуз",
+  "bread": "хлеб",
+  "cheese": "сыр",
+  "milk": "молоко",
+  "juice": "сок",
+  "ice cream": "мороженое",
+  "cupcake": "кекс",
+  "pizza": "пицца",
+  "burger": "бургер",
+  "sandwich": "бутерброд",
+  "carrot": "морковь",
+  "pencil": "карандаш",
+  "pen": "ручка",
+  "crayons": "мелки",
+  "eraser": "ластик",
+  "ruler": "линейка",
+  "school bag": "школьный рюкзак",
+  "notebook": "тетрадь",
+  "scissors": "ножницы",
+  "glue": "клей",
+  "paint palette": "палитра",
+  "calculator": "калькулятор",
+  "water bottle": "бутылка воды",
+  "paintbrush": "кисточка",
+  "book": "книга",
+  "marker": "маркер",
+  "sharpener": "точилка",
+  "sun": "солнце",
+  "cloud": "облако",
+  "rain": "дождь",
+  "snowflake": "снежинка",
+  "rainbow": "радуга",
+  "wind": "ветер",
+  "thunderstorm": "гроза",
+  "umbrella": "зонт",
+  "fog": "туман",
+  "partly cloudy": "переменная облачность",
+  "autumn leaf": "осенний лист",
+  "snowman": "снеговик",
+  "tree": "дерево",
+  "flower": "цветок",
+  "grass": "трава",
+  "watering can": "лейка",
+  "car": "машина",
+  "bus": "автобус",
+  "train": "поезд",
+  "airplane": "самолёт",
+  "helicopter": "вертолёт",
+  "bicycle": "велосипед",
+  "motorcycle": "мотоцикл",
+  "sailboat": "парусник",
+  "ship": "корабль",
+  "van": "фургон",
+  "taxi": "такси",
+  "fire truck": "пожарная машина",
+  "ambulance": "скорая помощь",
+  "police car": "полицейская машина",
+  "tractor": "трактор",
+  "scooter": "самокат",
+  "bed": "кровать",
+  "sofa": "диван",
+  "chair": "стул",
+  "table": "стол",
+  "desk": "письменный стол",
+  "wardrobe": "шкаф",
+  "bookshelf": "книжный шкаф",
+  "lamp": "лампа",
+  "clock": "часы",
+  "mirror": "зеркало",
+  "armchair": "кресло",
+  "stool": "табурет",
+  "cupboard": "шкафчик",
+  "fridge": "холодильник",
+  "oven": "духовка",
+  "washing machine": "стиральная машина",
+  "bathtub": "ванна",
+  "sink": "раковина",
+  "t-shirt": "футболка",
+  "shirt": "рубашка",
+  "sweater": "свитер",
+  "hoodie": "худи",
+  "coat": "пальто",
+  "dress": "платье",
+  "skirt": "юбка",
+  "trousers": "брюки",
+  "shorts": "шорты",
+  "socks": "носки",
+  "shoes": "туфли",
+  "boots": "сапоги",
+  "sandals": "сандалии",
+  "cap": "кепка",
+  "scarf": "шарф",
+  "gloves": "перчатки",
+  "head": "голова",
+  "hair": "волосы",
+  "eye": "глаз",
+  "ear": "ухо",
+  "nose": "нос",
+  "mouth": "рот",
+  "tooth": "зуб",
+  "hand": "кисть руки",
+  "arm": "рука",
+  "leg": "нога",
+  "foot": "ступня",
+  "finger": "палец",
+  "shoulder": "плечо",
+  "knee": "колено",
+  "elbow": "локоть",
+  "back": "спина",
+  "penguin": "пингвин",
+  "flamingo": "фламинго",
+  "peacock": "павлин",
+  "swan": "лебедь",
+  "chick": "цыплёнок",
+  "eagle": "орёл",
+  "toucan": "тукан",
+  "teddy bear": "плюшевый мишка",
+  "ball": "мяч",
+  "doll": "кукла",
+  "toy car": "игрушечная машина",
+  "toy train": "игрушечный поезд",
+  "blocks": "кубики",
+  "kite": "воздушный змей",
+  "robot": "робот",
+  "yo-yo": "йо-йо",
+  "read": "читать",
+  "write": "писать",
+  "run": "бегать",
+  "jump": "прыгать",
+  "eat": "есть",
+  "sleep": "спать",
+  "sit": "сидеть",
+  "stand": "стоять",
+  "clap": "хлопать",
+  "cup": "чашка",
+  "phone": "телефон",
+  "key": "ключ",
+  "toothbrush": "зубная щётка",
+  "camera": "фотоаппарат",
+  "gift": "подарок",
+  "holiday": "каникулы",
+  "music": "музыка",
+  "teacher": "учитель"
+};
+const PRESET_RU_TO_EN=Object.fromEntries(Object.entries(PRESET_RU).map(([en,ru])=>[ru.toLowerCase(),en]));
+function localizedDemoWords(){return demoWords.map(w=>uiLanguage==='ru'?(PRESET_RU[w]||w):w);}
+function markRowsAsPreset(sourceWords){
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  rows.forEach((row,i)=>{row.dataset.presetKey=sourceWords[i]||'';});
+  saveState();
+}
+function translatePresetRowsOnLanguageChange(previousLanguage){
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  let changed=false;
+  for(const row of rows){
+    const en=row.dataset.presetKey;
+    if(!en)continue;
+    const input=row.querySelector('.image-word-input');
+    if(!input)continue;
+    const expected=previousLanguage==='ru'?(PRESET_RU[en]||en):en;
+    if(input.value.trim()!==expected){row.dataset.presetKey='';continue;}
+    input.value=uiLanguage==='ru'?(PRESET_RU[en]||en):en;
+    row.word=input.value.trim();
+    const localBtn=row.querySelector('.our-pic-btn');
+    if(localBtn)localBtn.disabled=!builtinPictureForWord(row.word);
+    changed=true;
+  }
+  if(changed)syncWordsInputFromRows();
+}
 const STATIC_RU={
   'Scratch & Speak — Lottery Game':'Сотри защитный слой — Лотерея',
   'Scratch & Speak · Lottery Edition':'Сотри защитный слой · Лотерейная версия',
@@ -171,10 +385,30 @@ const STATIC_RU={
   'Picture + word':'Картинка + слово',
   'Ticket with two scratch fields':'Два поля для стирания',
   'Picture only':'Только картинка',
+  'Picture field shape':'Форма поля с картинкой',
+  'Choose a square or a wide rectangle for picture-only tickets.':'В режиме «Только картинка» выберите форму поля для стирания.',
+  'Square':'Квадрат',
+  'Rectangle':'Прямоугольник',
   'One large picture field · no word':'Одно большое поле с картинкой · без слова',
   'Random order':'Случайный порядок',
   'No repeats until the list ends.':'Без повторов, пока не закончится список.',
   'Ready-made categories':'Готовые темы',
+  "cat, dog, rabbit...":"кот, собака, кролик...",
+  "cow, pig, horse...":"корова, свинья, лошадь...",
+  "lion, tiger, elephant...":"лев, тигр, слон...",
+  "dolphin, whale, shark...":"дельфин, кит, акула...",
+  "apple, pizza, milk...":"яблоко, пицца, молоко...",
+  "pencil, book, scissors...":"карандаш, книга, ножницы...",
+  "sun, cloud, rain...":"солнце, облако, дождь...",
+  "tree, flower, grass...":"дерево, цветок, трава...",
+  "car, bus, train...":"машина, автобус, поезд...",
+  "bed, sofa, table...":"кровать, диван, стол...",
+  "t-shirt, dress, shoes...":"футболка, платье, туфли...",
+  "head, eye, hand...":"голова, глаз, кисть руки...",
+  "parrot, owl, eagle...":"попугай, сова, орёл...",
+  "teddy bear, ball, doll...":"мишка, мяч, кукла...",
+  "read, run, jump...":"читать, бегать, прыгать...",
+  "cup, key, phone...":"чашка, ключ, телефон...",
   'Quick classroom sets. Click any category to replace the current word list.':'Готовые наборы. Нажмите на тему, чтобы заменить текущий список слов.',
   'Pets':'Домашние питомцы',
   'Farm animals':'Ферма',
@@ -387,7 +621,11 @@ function applyLanguage(shouldSave=true){
   if(shouldSave)saveState();
 }
 function setUiLanguage(lang){
-  uiLanguage=lang==='en'?'en':'ru';
+  const next=lang==='en'?'en':'ru';
+  if(next===uiLanguage)return;
+  const previous=uiLanguage;
+  uiLanguage=next;
+  translatePresetRowsOnLanguageChange(previous);
   applyLanguage();
 }
 
@@ -395,10 +633,19 @@ const searchCache=new Map();
 const rowResultCaches=new Map();
 const rowResultIndices=new Map();
 
-function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({wordsText:wordsInput.value,mode:getMode(),shuffle:shuffleToggle.checked,imageStyle:imageStyleSelect.value,images:gatherImageState(),displayMode,teamAScore,teamBScore,teamAName:teamAName?.value||'Team 1',teamBName:teamBName?.value||'Team 2',scoreboardVisible,introEnabled,scratchCoinSize,uiLanguage}));}
-function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=demoWords.join('\n');buildImageRows([]);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText||demoWords.join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=['tiny','small','large'].includes(data.scratchCoinSize)?data.scratchCoinSize:'large';uiLanguage=data.uiLanguage==='en'?'en':'ru';updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=demoWords.join('\n');buildImageRows([]);updateScoreboard(false);updateIntroToggle(false);}}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({wordsText:wordsInput.value,mode:getMode(),shuffle:shuffleToggle.checked,imageStyle:imageStyleSelect.value,images:gatherImageState(),displayMode,teamAScore,teamBScore,teamAName:teamAName?.value||'Team 1',teamBName:teamBName?.value||'Team 2',scoreboardVisible,introEnabled,scratchCoinSize,uiLanguage,pictureShape:getPictureShape()}));}
+function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsInput.value=localizedDemoWords().join('\n');buildImageRows([]);markRowsAsPreset(demoWords);updateIntroToggle(false);return;}try{const data=JSON.parse(raw);wordsInput.value=data.wordsText??localizedDemoWords().join('\n');if(data.mode){const input=document.querySelector(`input[name="mode"][value="${data.mode}"]`);if(input)input.checked=true;}shuffleToggle.checked=data.shuffle??true;imageStyleSelect.value=data.imageStyle||'illustration';displayMode=data.displayMode||'teacher';teamAScore=Number.isFinite(Number(data.teamAScore))?Number(data.teamAScore):0;teamBScore=Number.isFinite(Number(data.teamBScore))?Number(data.teamBScore):0;teamAName.value=data.teamAName||'Team 1';teamBName.value=data.teamBName||'Team 2';scoreboardVisible=!!data.scoreboardVisible;introEnabled=data.introEnabled!==false;scratchCoinSize=['tiny','small','large'].includes(data.scratchCoinSize)?data.scratchCoinSize:'large';uiLanguage=data.uiLanguage==='en'?'en':'ru';
+const savedShape=data.pictureShape==='rectangle'?'rectangle':'square';
+const shapeInput=document.querySelector('input[name="pictureShape"][value="'+savedShape+'"]');
+if(shapeInput)shapeInput.checked=true;
+updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=localizedDemoWords().join('\n');buildImageRows([]);markRowsAsPreset(demoWords);updateScoreboard(false);updateIntroToggle(false);}}
 function refreshModeStyles(){document.querySelectorAll('.mode-option').forEach(el=>{const input=el.querySelector('input');el.classList.toggle('selected',input.checked);});}
 function getMode(){return document.querySelector('input[name="mode"]:checked')?.value||'word';}
+function getPictureShape(){return document.querySelector('input[name="pictureShape"]:checked')?.value==='rectangle'?'rectangle':'square';}
+function refreshPictureShapeVisibility(){
+  const show=getMode()==='picture';
+  document.getElementById('pictureShapeChooser')?.classList.toggle('hidden',!show);
+}
 function parseWordsFromText(text){return text.split(/\r?\n|,|;/).map(v=>v.trim()).filter(Boolean);}
 function parseWords(){return parseWordsFromText(wordsInput.value);} 
 function makeButton(text,className,onClick){const btn=document.createElement('button');btn.type='button';btn.className=className;btn.textContent=text;btn.addEventListener('click',onClick);return btn;}
@@ -410,7 +657,15 @@ function syncWordsInputFromRows(){
   wordsInput.value=words.join('\n');
 }
 function cacheKey(word){return `${word.toLowerCase()}|${imageStyleSelect.value}`;}
-function applyCategory(name){const words=presetCategories[name];if(!words)return;wordsInput.value=words.join('\n');buildImageRows([]);setStatus(`Loaded ready solution: ${name}. Built-in pictures are filled first in picture modes.`);saveState();}
+function applyCategory(name){
+  const originals=presetCategories[name];if(!originals)return;
+  const words=originals.map(en=>uiLanguage==='ru'?(PRESET_RU[en]||en):en);
+  wordsInput.value=words.join('\n');
+  buildImageRows([]);
+  markRowsAsPreset(originals);
+  setStatus(`Loaded ready solution: ${name}. Built-in pictures are filled first in picture modes.`);
+  saveState();
+}
 function addWordInteractive(){
   const raw=window.prompt('Add a word or phrase:');
   if(raw===null)return;
@@ -761,16 +1016,16 @@ function buildImageRows(existing=[]){
     if(matchIndex>=0){
       usedExisting.add(matchIndex);
       const item=existingList[matchIndex]||{};
-      return {id:item.id||newRowId(),word,imageSrc:item.imageSrc||''};
+      return {id:item.id||newRowId(),word,imageSrc:item.imageSrc||'',presetKey:item.presetKey&&item.word===word?item.presetKey:''};
     }
 
-    return {id:newRowId(),word,imageSrc:''};
+    return {id:newRowId(),word,imageSrc:'',presetKey:''};
   });
 
   existingList.forEach((item,i)=>{
     if(usedExisting.has(i))return;
     if(String(item?.word||'').trim())return;
-    rowItems.push({id:item.id||newRowId(),word:'',imageSrc:item.imageSrc||''});
+    rowItems.push({id:item.id||newRowId(),word:'',imageSrc:item.imageSrc||'',presetKey:''});
   });
 
   if(!rowItems.length){
@@ -787,6 +1042,7 @@ function buildImageRows(existing=[]){
     const row=document.createElement('div');
     row.className='image-row';
     row.dataset.rowId=item.id||newRowId();
+    row.dataset.presetKey=item.presetKey||'';
 
     const selectWrap=document.createElement('label');
     selectWrap.className='row-select-wrap';
@@ -853,6 +1109,7 @@ function buildImageRows(existing=[]){
 
     wordInput.addEventListener('focus',()=>selectImageRow(row));
     wordInput.addEventListener('input',()=>{
+      row.dataset.presetKey='';
       refreshWordControls();
       syncWordsInputFromRows();
       saveState();
@@ -922,7 +1179,7 @@ function buildImageRows(existing=[]){
   saveState();
 }
 
-function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({id:row.dataset.rowId||newRowId(),word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||''}));}
+function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({id:row.dataset.rowId||newRowId(),word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||'',presetKey:row.dataset.presetKey||''}));}
 function buildCards(){const rows=gatherImageState();if(getMode()==='picture')return rows.map(item=>({word:item.word||'',imageSrc:item.imageSrc||''}));return rows.filter(item=>item.word).map(item=>({word:item.word,imageSrc:item.imageSrc||''}));}
 function shuffled(arr){const copy=arr.map(v=>({...v}));if(!shuffleToggle.checked)return copy;for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
 function isShortSimpleWord(word){return /^[a-zA-Z-]{2,14}$/.test(word.trim())&&!/\s/.test(word.trim());}
@@ -1019,7 +1276,7 @@ function renderCurrent(){
     resultWord.classList.remove('hidden');
     renderPictureSource(current.imageSrc);
   }else{
-    ticketContent.className='ticket-content picture-only-layout';
+    ticketContent.className='ticket-content picture-only-layout'+(getPictureShape()==='rectangle'?' picture-rectangle-layout':'');
     picturePanel.classList.remove('hidden');
     wordPanel.classList.add('hidden');
     showWordBtn.classList.add('hidden');
@@ -1203,7 +1460,7 @@ function readFileAsDataUrl(file){return new Promise((resolve,reject)=>{const rea
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
 
 categoryButtons.forEach(btn=>btn.addEventListener('click',()=>applyCategory(btn.dataset.category)));
-fillDemoBtn.addEventListener('click',()=>{wordsInput.value=demoWords.join('\n');buildImageRows(gatherImageState());saveState();});
+fillDemoBtn.addEventListener('click',()=>{wordsInput.value=localizedDemoWords().join('\n');buildImageRows([]);markRowsAsPreset(demoWords);saveState();});
 dedupeListBtn.addEventListener('click',dedupeWordList);
 sortListBtn.addEventListener('click',sortWordList);
 clearListBtn.addEventListener('click',clearWordList);
@@ -1219,7 +1476,7 @@ startBtn.addEventListener('click',startGameWithIntro);introToggleBtn.addEventLis
 showWordBtn.addEventListener('click',()=>{resultWord.textContent=current?.word||'';resultWord.classList.remove('hidden');showWordBtn.classList.add('hidden');fitWord();});
 closeModalBtn.addEventListener('click',closeImageModal);modal.querySelector('[data-close-modal]').addEventListener('click',closeImageModal);
 modalSearchBtn.addEventListener('click',()=>{modalPage=1;fetchModalResults(true);});modalMoreBtn.addEventListener('click',()=>{modalPage+=1;fetchModalResults(true);});modalSearchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){modalPage=1;fetchModalResults(true);}});
-let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();clearTimeout(wordsRefreshTimer);wordsRefreshTimer=setTimeout(()=>buildImageRows(gatherImageState()),220);});shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(cropModal&&!cropModal.classList.contains('hidden')){closeCropEditor();return;}if(!modal.classList.contains('hidden'))closeImageModal();});cropCloseBtn?.addEventListener('click',closeCropEditor);
+let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();clearTimeout(wordsRefreshTimer);wordsRefreshTimer=setTimeout(()=>buildImageRows(gatherImageState()),220);});document.querySelectorAll('input[name="pictureShape"]').forEach(input=>input.addEventListener('change',saveState));shuffleToggle.addEventListener('change',saveState);imageStyleSelect.addEventListener('change',saveState);modeInputs.forEach(input=>input.addEventListener('change',()=>{refreshModeStyles();refreshPictureShapeVisibility();if(getMode()!=='word'){document.querySelectorAll('.image-row').forEach(row=>{if(!row.previewBox?.dataset?.src){const src=builtinPictureForWord(row.word);if(src)row.setImage(src);}});}saveState();}));window.addEventListener('resize',()=>{document.querySelectorAll('[data-builtin-key]').forEach(el=>applyBuiltinSprite(el,el.dataset.builtinKey));if(gameScreen.classList.contains('active')){fitWord();requestAnimationFrame(()=>prepareScratchSurface());}});window.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(cropModal&&!cropModal.classList.contains('hidden')){closeCropEditor();return;}if(!modal.classList.contains('hidden'))closeImageModal();});cropCloseBtn?.addEventListener('click',closeCropEditor);
 cropCancelBtn?.addEventListener('click',closeCropEditor);
 cropBackdrop?.addEventListener('click',closeCropEditor);
 cropFitBtn?.addEventListener('click',fitCropImage);
@@ -1268,4 +1525,4 @@ let isDown=false;
   canvas.addEventListener('pointerleave',()=>{lastScratchPoint=null;});
 });
 window.addEventListener('pointerup',()=>{isDown=false;lastScratchPoint=null;});
-loadState();applyLanguage(false);updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);if(!document.querySelector('.image-row'))buildImageRows(gatherImageState());
+loadState();applyLanguage(false);updateCoinSizeUI(false);refreshModeStyles();refreshPictureShapeVisibility();applyDisplayMode(displayMode,false);updateScoreboard(false);if(!document.querySelector('.image-row'))buildImageRows(gatherImageState());
