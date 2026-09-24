@@ -438,3 +438,71 @@ body.kids-mode .coin-size-control{right:18px;bottom:14px}
 }
 
 /* FINAL 15 — third, extra-fine scratch coin */
+
+/* FINAL 16 — RU/EN interface + vertical coin selector */
+.setup-header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.language-switcher{
+  display:flex;
+  gap:3px;
+  padding:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.82);
+  border:1px solid var(--line);
+  box-shadow:0 8px 20px rgba(71,92,150,.07);
+}
+.lang-btn{
+  min-width:44px;
+  padding:8px 11px;
+  border-radius:999px;
+  background:transparent;
+  color:var(--muted);
+  font:800 .85rem 'Inter',sans-serif;
+  transform:none!important;
+}
+.lang-btn.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:#fff;
+  box-shadow:0 6px 14px rgba(73,92,255,.20);
+}
+.coin-size-control{
+  right:9px!important;
+  top:52%!important;
+  bottom:auto!important;
+  transform:translateY(-50%)!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  padding:10px 8px!important;
+  min-width:54px;
+}
+.coin-size-label{
+  font-size:.70rem!important;
+  line-height:1.05;
+  text-align:center;
+  white-space:nowrap;
+}
+body.kids-mode .coin-size-control{
+  right:7px!important;
+  top:52%!important;
+  bottom:auto!important;
+}
+@media(max-width:760px){
+  .setup-header-actions{width:100%;justify-content:space-between}
+  .coin-size-control{
+    right:4px!important;
+    top:52%!important;
+    bottom:auto!important;
+    min-width:45px;
+    padding:7px 5px!important;
+    gap:6px!important;
+  }
+  .coin-size-label{font-size:.62rem!important}
+  .coin-size-tiny{width:18px!important;height:18px!important}
+  .coin-size-small{width:23px!important;height:23px!important}
+  .coin-size-large{width:31px!important;height:31px!important}
+}
