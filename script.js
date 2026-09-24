@@ -343,6 +343,26 @@ function markRowsAsPreset(sourceWords){
   rows.forEach((row,i)=>{row.dataset.presetKey=sourceWords[i]||'';});
   saveState();
 }
+function restoreLegacyPresetLanguage(){
+  // Older saved sets had no source tags. Convert only when the WHOLE saved list
+  // exactly matches one of our original categories or the demo list.
+  const rows=Array.from(document.querySelectorAll('.image-row'));
+  if(!rows.length||rows.some(row=>row.dataset.presetKey))return;
+  const current=rows.map(row=>(row.querySelector('.image-word-input')?.value||'').trim());
+  const candidates=[...Object.values(presetCategories),demoWords];
+  for(const originals of candidates){
+    if(originals.length!==current.length)continue;
+    const ruWords=originals.map(word=>PRESET_RU[word]||word);
+    const isEnglish=originals.every((word,i)=>word===current[i]);
+    const isRussian=ruWords.every((word,i)=>word===current[i]);
+    if(!isEnglish&&!isRussian)continue;
+    rows.forEach((row,i)=>{row.dataset.presetKey=originals[i];});
+    if(uiLanguage==='ru'&&isEnglish)translatePresetRowsOnLanguageChange('en');
+    if(uiLanguage==='en'&&isRussian)translatePresetRowsOnLanguageChange('ru');
+    saveState();
+    return;
+  }
+}
 function translatePresetRowsOnLanguageChange(previousLanguage){
   const rows=Array.from(document.querySelectorAll('.image-row'));
   let changed=false;
@@ -638,7 +658,7 @@ function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){wordsI
 const savedShape=data.pictureShape==='rectangle'?'rectangle':'square';
 const shapeInput=document.querySelector('input[name="pictureShape"][value="'+savedShape+'"]');
 if(shapeInput)shapeInput.checked=true;
-updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);}catch{wordsInput.value=localizedDemoWords().join('\n');buildImageRows([]);markRowsAsPreset(demoWords);updateScoreboard(false);updateIntroToggle(false);}}
+updateCoinSizeUI(false);refreshModeStyles();applyDisplayMode(displayMode,false);updateScoreboard(false);updateIntroToggle(false);buildImageRows(data.images||[]);restoreLegacyPresetLanguage();}catch{wordsInput.value=localizedDemoWords().join('\n');buildImageRows([]);markRowsAsPreset(demoWords);updateScoreboard(false);updateIntroToggle(false);}}
 function refreshModeStyles(){document.querySelectorAll('.mode-option').forEach(el=>{const input=el.querySelector('input');el.classList.toggle('selected',input.checked);});}
 function getMode(){return document.querySelector('input[name="mode"]:checked')?.value||'word';}
 function getPictureShape(){return document.querySelector('input[name="pictureShape"]:checked')?.value==='rectangle'?'rectangle':'square';}
