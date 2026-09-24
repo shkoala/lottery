@@ -545,3 +545,27 @@ body.kids-mode .coin-size-control{
   .picture-shape-option{flex:1;justify-content:center;padding:8px}
   .ticket-content.picture-only-layout.picture-rectangle-layout .picture-panel{padding:8px}
 }
+
+/* FINAL 19 — a wide picture really fills the wide picture-only scratch field. */
+.ticket-content.picture-only-layout.picture-rectangle-layout .picture-panel img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover!important;
+  object-position:center;
+  padding:0!important;
+}
+.ticket-content.picture-only-layout.picture-rectangle-layout .result-builtin-sprite{
+  background-size:cover!important;
+  background-position:center!important;
+}
+.crop-modal.crop-wide .crop-stage-wrap{
+  width:min(680px,86vw);
+  aspect-ratio:5 / 2;
+}
+.crop-modal.crop-wide .crop-controls{width:min(680px,86vw)}
+.crop-controls{grid-template-columns:auto minmax(0,1fr) auto auto auto}
+@media(max-width:620px){
+  .crop-controls{grid-template-columns:auto minmax(0,1fr) auto}
+  .crop-controls #cropFitBtn,.crop-controls #cropFillBtn{grid-column:span 3}
+}
