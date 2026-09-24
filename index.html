@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Comic+Neue:wght@400;700&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="style.css?v=final17" rel="stylesheet"/>
+<link href="style.css?v=final18" rel="stylesheet"/>
 </head>
 <body>
 <main class="app-shell">
@@ -76,6 +76,16 @@ holiday" spellcheck="false"></textarea>
 <label class="mode-option selected"><input checked="" name="mode" type="radio" value="word"/><span><strong>Word</strong><small>One big scratch field with a stretched word</small></span></label>
 <label class="mode-option"><input name="mode" type="radio" value="picture-word"/><span><strong>Picture + word</strong><small>Ticket with two scratch fields</small></span></label>
 <label class="mode-option"><input name="mode" type="radio" value="picture"/><span><strong>Picture only</strong><small>One large picture field · no word</small></span></label>
+</div>
+<div class="picture-shape-chooser hidden" id="pictureShapeChooser">
+  <div class="picture-shape-heading">
+    <strong>Picture field shape</strong>
+    <small>Choose a square or a wide rectangle for picture-only tickets.</small>
+  </div>
+  <div class="picture-shape-options" role="group" aria-label="Picture field shape">
+    <label class="picture-shape-option"><input type="radio" name="pictureShape" value="square" checked/><span class="shape-symbol shape-square" aria-hidden="true"></span><strong>Square</strong></label>
+    <label class="picture-shape-option"><input type="radio" name="pictureShape" value="rectangle"/><span class="shape-symbol shape-rectangle" aria-hidden="true"></span><strong>Rectangle</strong></label>
+  </div>
 </div>
 <div class="toggle-row"><label class="switch"><input checked="" id="shuffleToggle" type="checkbox"/><span class="slider"></span></label><div><strong>Random order</strong><p>No repeats until the list ends.</p></div></div>
 </div>
@@ -256,6 +266,6 @@ holiday" spellcheck="false"></textarea>
     </div>
   </div>
 </div>
-<script src="script.js?v=final17"></script>
+<script src="script.js?v=final18"></script>
 </body>
 </html>
