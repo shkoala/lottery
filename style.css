@@ -506,3 +506,42 @@ body.kids-mode .coin-size-control{
   .coin-size-small{width:23px!important;height:23px!important}
   .coin-size-large{width:31px!important;height:31px!important}
 }
+
+/* FINAL 18 — picture-only square / full-width rectangle picker */
+.picture-shape-chooser{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;margin:12px 0 4px;padding:14px;
+  border-radius:18px;border:1px solid rgba(111,86,248,.20);
+  background:linear-gradient(135deg,#f9f7ff,#f0f8ff);
+}
+.picture-shape-heading{display:flex;flex-direction:column;gap:4px}
+.picture-shape-heading strong{font-size:1rem;color:var(--text)}
+.picture-shape-heading small{font-size:.86rem;color:var(--muted)}
+.picture-shape-options{display:flex;flex-wrap:wrap;gap:10px}
+.picture-shape-option{
+  display:flex;gap:9px;align-items:center;min-height:54px;cursor:pointer;
+  padding:9px 13px;border-radius:15px;background:#fff;
+  border:2px solid rgba(78,85,150,.13);
+}
+.picture-shape-option:has(input:checked){border-color:#7960e8;background:#f4f0ff;box-shadow:0 5px 15px rgba(80,71,160,.12)}
+.picture-shape-option input{accent-color:#7655e8;width:17px;height:17px}
+.shape-symbol{display:inline-block;border:2px solid #7457d6;border-radius:4px;background:#e8e4ff}
+.shape-square{width:24px;height:24px}
+.shape-rectangle{width:37px;height:22px}
+.ticket-content.picture-only-layout.picture-rectangle-layout{
+  grid-template-columns:1fr!important;place-items:stretch;min-height:0;
+}
+.ticket-content.picture-only-layout.picture-rectangle-layout .picture-panel{
+  width:100%!important;height:100%!important;aspect-ratio:auto!important;
+  min-width:0;min-height:0;align-self:stretch;justify-self:stretch;
+  padding:14px;
+}
+.ticket-content.picture-only-layout.picture-rectangle-layout .picture-panel img{
+  width:100%;height:100%;object-fit:contain!important;
+}
+@media(max-width:680px){
+  .picture-shape-chooser{align-items:stretch;padding:12px}
+  .picture-shape-options{width:100%}
+  .picture-shape-option{flex:1;justify-content:center;padding:8px}
+  .ticket-content.picture-only-layout.picture-rectangle-layout .picture-panel{padding:8px}
+}
