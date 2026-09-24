@@ -74,6 +74,7 @@ const cropBackdrop=document.getElementById('cropBackdrop');
 const cropCanvas=document.getElementById('cropCanvas');
 const cropZoom=document.getElementById('cropZoom');
 const cropFitBtn=document.getElementById('cropFitBtn');
+const cropFillBtn=document.getElementById('cropFillBtn');
 const cropCloseBtn=document.getElementById('cropCloseBtn');
 const cropCancelBtn=document.getElementById('cropCancelBtn');
 const cropApplyBtn=document.getElementById('cropApplyBtn');
@@ -499,6 +500,7 @@ const STATIC_RU={
   'Crop picture':'Обрезать картинку',
   'Drag the picture. Use the slider to zoom.':'Перетаскивайте картинку. Масштаб меняется ползунком.',
   'Fit':'Вместить',
+  'Fill':'Заполнить',
   'Cancel':'Отмена',
   '✂ Use crop':'✂ Сохранить обрезку'
 };
@@ -796,44 +798,51 @@ function cropCanvasPoint(ev){
   };
 }
 
-function drawCropEditor(){
+function drawCropImage(ctx,drawGuide=false){
   if(!cropCanvas||!cropImage)return;
-  const c=cropCtx();
   const W=cropCanvas.width,H=cropCanvas.height;
-  c.clearRect(0,0,W,H);
-  c.fillStyle='#fff';
-  c.fillRect(0,0,W,H);
-
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,W,H);
   const scale=cropBaseScale*cropScale;
   const dw=cropImage.naturalWidth*scale;
   const dh=cropImage.naturalHeight*scale;
   const x=(W-dw)/2+cropOffsetX;
   const y=(H-dh)/2+cropOffsetY;
-
-  c.imageSmoothingEnabled=true;
-  c.imageSmoothingQuality='high';
-  c.drawImage(cropImage,x,y,dw,dh);
-
-  // crop-frame border
-  c.save();
-  c.strokeStyle='rgba(79,64,190,.78)';
-  c.lineWidth=5;
-  c.setLineDash([16,12]);
-  c.strokeRect(4,4,W-8,H-8);
-  c.setLineDash([]);
-  c.restore();
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(cropImage,x,y,dw,dh);
+  if(drawGuide){
+    ctx.save();
+    ctx.strokeStyle='rgba(79,64,190,.78)';
+    ctx.lineWidth=Math.max(3,W*.004);
+    ctx.setLineDash([Math.max(9,W*.012),Math.max(6,W*.008)]);
+    const margin=ctx.lineWidth/2+2;
+    ctx.strokeRect(margin,margin,W-margin*2,H-margin*2);
+    ctx.restore();
+  }
 }
-
-function fitCropImage(){
-  if(!cropImage||!cropCanvas)return;
-  const W=cropCanvas.width,H=cropCanvas.height;
-  // "Fit" shows the whole image; white background remains if needed.
-  cropBaseScale=Math.min(W/cropImage.naturalWidth,H/cropImage.naturalHeight);
+function drawCropEditor(){
+  const c=cropCtx();
+  if(c&&cropImage)drawCropImage(c,true);
+}
+function setCropZoomBase(scale){
+  cropBaseScale=scale;
   cropScale=1;
   cropOffsetX=0;
   cropOffsetY=0;
   if(cropZoom)cropZoom.value='100';
   drawCropEditor();
+}
+function fitCropImage(){
+  if(!cropImage||!cropCanvas)return;
+  // Show the entire original, with margins if its shape differs from the frame.
+  setCropZoomBase(Math.min(cropCanvas.width/cropImage.naturalWidth,cropCanvas.height/cropImage.naturalHeight));
+}
+function fillCropImage(){
+  if(!cropImage||!cropCanvas)return;
+  // Fill the complete selected frame without stretching or a square-shaped picture area.
+  setCropZoomBase(Math.max(cropCanvas.width/cropImage.naturalWidth,cropCanvas.height/cropImage.naturalHeight));
 }
 
 function closeCropEditor(){
@@ -854,9 +863,13 @@ function openCropEditor(row){
 
   img.onload=()=>{
     cropImage=img;
+    const wide=getMode()==='picture'&&getPictureShape()==='rectangle';
+    cropCanvas.width=wide?1200:720;
+    cropCanvas.height=wide?480:720;
+    cropModal?.classList.toggle('crop-wide',wide);
     cropModal?.classList.remove('hidden');
     cropModal?.setAttribute('aria-hidden','false');
-    fitCropImage();
+    if(wide)fillCropImage();else fitCropImage();
   };
 
   img.onerror=()=>{
@@ -876,12 +889,10 @@ function applyCrop(){
   if(!cropRow||!cropImage||!cropCanvas)return;
   try{
     const out=document.createElement('canvas');
-    out.width=720;
-    out.height=720;
-    const o=out.getContext('2d');
-    o.fillStyle='#fff';
-    o.fillRect(0,0,out.width,out.height);
-    o.drawImage(cropCanvas,0,0,out.width,out.height);
+    out.width=cropCanvas.width;
+    out.height=cropCanvas.height;
+    // The dashed editor border is a guide, not part of the saved picture.
+    drawCropImage(out.getContext('2d'),false);
     const src=out.toDataURL('image/png',0.96);
     cropRow.setImage(src);
     selectImageRow(cropRow);
@@ -1500,6 +1511,7 @@ let wordsRefreshTimer=null;wordsInput.addEventListener('input',()=>{saveState();
 cropCancelBtn?.addEventListener('click',closeCropEditor);
 cropBackdrop?.addEventListener('click',closeCropEditor);
 cropFitBtn?.addEventListener('click',fitCropImage);
+cropFillBtn?.addEventListener('click',fillCropImage);
 cropApplyBtn?.addEventListener('click',applyCrop);
 
 cropZoom?.addEventListener('input',()=>{
