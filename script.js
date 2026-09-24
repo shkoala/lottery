@@ -728,7 +728,7 @@ function normalizeWordList(){const words=parseWords();wordsInput.value=words.joi
 function dedupeWordList(){const seen=new Set();const words=[];for(const w of parseWords()){const key=w.toLowerCase();if(seen.has(key))continue;seen.add(key);words.push(w);}wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Duplicate words removed.');saveState();}
 function sortWordList(){const words=parseWords().sort((a,b)=>a.localeCompare(b));wordsInput.value=words.join('\n');buildImageRows(gatherImageState());setStatus('Word list sorted A–Z.');saveState();}
 function clearWordList(){wordsInput.value='';buildImageRows([]);setStatus('Word list cleared.');saveState();}
-function clearAllImages(){document.querySelectorAll('.image-row').forEach(row=>{const preview=row.querySelector('.image-preview');const url=row.querySelector('.image-url-input');if(preview){delete preview.dataset.src;clearBuiltinSprite(preview);preview.innerHTML='';preview.textContent=uiText('No image','Нет картинки');}if(url)url.value='';});setStatus('All images cleared.');saveState();}
+function clearAllImages(){document.querySelectorAll('.image-row').forEach(row=>{const preview=row.querySelector('.image-preview');const url=row.querySelector('.image-url-input');if(preview){delete preview.dataset.src;delete preview.dataset.cropApplied;delete preview.dataset.cropShape;clearBuiltinSprite(preview);preview.innerHTML='';preview.textContent=uiText('No image','Нет картинки');}if(url)url.value='';});setStatus('All images cleared.');saveState();}
 function updateIntroToggle(shouldSave=true){introToggleBtn.textContent=uiLanguage==='ru'?`Интро с Коулом: ${introEnabled?'ВКЛ':'ВЫКЛ'}`:`Cole intro: ${introEnabled?'ON':'OFF'}`;introToggleBtn.classList.toggle('active-toggle',introEnabled);introToggleBtn.classList.toggle('inactive-toggle',!introEnabled);if(shouldSave)saveState();}
 function toggleIntroEnabled(){introEnabled=!introEnabled;updateIntroToggle();}
 function previewColeIntro(){showIntroOverlay(()=>{});}
@@ -894,7 +894,7 @@ function applyCrop(){
     // The dashed editor border is a guide, not part of the saved picture.
     drawCropImage(out.getContext('2d'),false);
     const src=out.toDataURL('image/png',0.96);
-    cropRow.setImage(src);
+    cropRow.setImage(src,{cropApplied:true,cropShape:(getMode()==='picture'?getPictureShape():'square')});
     selectImageRow(cropRow);
     setStatus('Cropped picture saved for “'+cropRow.word+'”.');
     closeCropEditor();
@@ -1047,7 +1047,7 @@ function buildImageRows(existing=[]){
     if(matchIndex>=0){
       usedExisting.add(matchIndex);
       const item=existingList[matchIndex]||{};
-      return {id:item.id||newRowId(),word,imageSrc:item.imageSrc||'',presetKey:item.presetKey&&item.word===word?item.presetKey:''};
+      return {id:item.id||newRowId(),word,imageSrc:item.imageSrc||'',cropApplied:item.cropApplied===true,cropShape:item.cropShape||'',presetKey:item.presetKey&&item.word===word?item.presetKey:''};
     }
 
     return {id:newRowId(),word,imageSrc:'',presetKey:''};
@@ -1056,7 +1056,7 @@ function buildImageRows(existing=[]){
   existingList.forEach((item,i)=>{
     if(usedExisting.has(i))return;
     if(String(item?.word||'').trim())return;
-    rowItems.push({id:item.id||newRowId(),word:'',imageSrc:item.imageSrc||'',presetKey:''});
+    rowItems.push({id:item.id||newRowId(),word:'',imageSrc:item.imageSrc||'',cropApplied:item.cropApplied===true,cropShape:item.cropShape||'',presetKey:''});
   });
 
   if(!rowItems.length){
@@ -1104,13 +1104,22 @@ function buildImageRows(existing=[]){
 
     function currentWord(){return wordInput.value.trim();}
 
-    function setPreview(src){
+    function setPreview(src,meta={}){
       preview.innerHTML='';
       if(src){
         preview.dataset.src=src;
+        // A newly inserted image is always kept in full. Only Use crop sets this flag.
+        preview.dataset.cropApplied=meta.cropApplied===true?'true':'false';
+        if(meta.cropApplied===true&&['square','rectangle'].includes(meta.cropShape)){
+          preview.dataset.cropShape=meta.cropShape;
+        }else{
+          delete preview.dataset.cropShape;
+        }
         preview.innerHTML=`<img src="${src}" alt="${escapeHtml(currentWord()||'Picture')}">`;
       }else{
         delete preview.dataset.src;
+        delete preview.dataset.cropApplied;
+        delete preview.dataset.cropShape;
         preview.textContent=uiText('No image','Нет картинки');
       }
       saveState();
@@ -1191,7 +1200,7 @@ function buildImageRows(existing=[]){
     });
 
     if(item.imageSrc){
-      setPreview(item.imageSrc);
+      setPreview(item.imageSrc,{cropApplied:item.cropApplied===true,cropShape:item.cropShape||''});
     }else if(getMode()!=='word'){
       const localSrc=builtinPictureForWord(currentWord());
       if(localSrc)setPreview(localSrc);
@@ -1210,8 +1219,8 @@ function buildImageRows(existing=[]){
   saveState();
 }
 
-function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({id:row.dataset.rowId||newRowId(),word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||'',presetKey:row.dataset.presetKey||''}));}
-function buildCards(){const rows=gatherImageState();if(getMode()==='picture')return rows.map(item=>({word:item.word||'',imageSrc:item.imageSrc||''}));return rows.filter(item=>item.word).map(item=>({word:item.word,imageSrc:item.imageSrc||''}));}
+function gatherImageState(){return Array.from(document.querySelectorAll('.image-row')).map(row=>({id:row.dataset.rowId||newRowId(),word:row.querySelector('.image-word-input')?.value?.trim()||'',imageSrc:row.querySelector('.image-preview')?.dataset?.src||'',cropApplied:row.querySelector('.image-preview')?.dataset?.cropApplied==='true',cropShape:row.querySelector('.image-preview')?.dataset?.cropShape||'',presetKey:row.dataset.presetKey||''}));}
+function buildCards(){const rows=gatherImageState();if(getMode()==='picture')return rows.map(item=>({word:item.word||'',imageSrc:item.imageSrc||'',cropApplied:item.cropApplied,cropShape:item.cropShape}));return rows.filter(item=>item.word).map(item=>({word:item.word,imageSrc:item.imageSrc||'',cropApplied:item.cropApplied,cropShape:item.cropShape}));}
 function shuffled(arr){const copy=arr.map(v=>({...v}));if(!shuffleToggle.checked)return copy;for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
 function isShortSimpleWord(word){return /^[a-zA-Z-]{2,14}$/.test(word.trim())&&!/\s/.test(word.trim());}
 function buildSmartQueries(word){const clean=word.trim();const style=imageStyleSelect.value;const queries=[];if(style==='illustration'){if(isShortSimpleWord(clean)){queries.push(`cute ${clean} cartoon isolated white background`);queries.push(`${clean} cartoon isolated white background`);queries.push(`${clean} illustration isolated`);queries.push(`${clean} clipart`);queries.push(`${clean} drawing for kids`);}else{queries.push(`${clean} illustration`);queries.push(`${clean} cartoon`);queries.push(`${clean} drawing`);queries.push(clean);}}else if(style==='photo'){queries.push(`${clean} isolated white background`);queries.push(`${clean} photo`);queries.push(clean);}else{queries.push(clean);queries.push(`${clean} isolated`);queries.push(`${clean} illustration`);}return [...new Set(queries)];}
@@ -1276,6 +1285,8 @@ function loadNextCard(){
 }
 
 function renderPictureSource(src){
+  const fieldShape=mode==='picture'?getPictureShape():'square';
+  picturePanel.classList.toggle('user-cropped',current?.cropApplied===true&&current?.cropShape===fieldShape);
   clearBuiltinSprite(resultBuiltinSprite);
 
   if(isBuiltinSrc(src)){
