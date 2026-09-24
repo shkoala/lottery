@@ -148,8 +148,8 @@ const COIN_CURSOR_TINY=makeCoinCursor(38,13,13,19);
 
 let cards=[],deck=[],current=null,usedCount=0,revealedEnough=false,mode='word',audioContext=null,lastScratchAt=0,confettiParticles=[],confettiAnimating=false,modalRowTarget=null,scratchRects=[],scratchDpr=1,lastScratchPoint=null,activeScratchLayers=[],modalPage=1,modalWord='',modalBaseQueries=[],modalQueryIndex=0,displayMode='teacher',teamAScore=0,teamBScore=0,scoreboardVisible=false,introEnabled=true,introPendingAction=null,introTimer=null,scratchCoinSize='large',uiLanguage='ru';
 const STATIC_RU={
-  'Scratch & Speak — Lottery Game':'Scratch & Speak — Лотерея',
-  'Scratch & Speak · Lottery Edition':'Scratch & Speak · Лотерейная версия',
+  'Scratch & Speak — Lottery Game':'Сотри защитный слой — Лотерея',
+  'Scratch & Speak · Lottery Edition':'Сотри защитный слой · Лотерейная версия',
   'Scratch ticket game':'Лотерея со стираемыми билетами',
   'A bright lottery-style classroom game with a built-in picture pack, optional Cole intro, scratch sound, two-team scoreboard, full-screen class view and confetti.':'Яркая лотерейная игра для урока: встроенные картинки, интро с Коулом, звук стирания, счёт для двух команд, режим для класса и конфетти.',
   '⛶ Full screen':'⛶ На весь экран',
@@ -217,6 +217,7 @@ const STATIC_RU={
   'Reset':'Сбросить',
   'Hide':'Скрыть',
   'Lucky Reveal':'Сотри и открой',
+  'Scratch & Speak':'Сотри защитный слой',
   'WIN!':'ПРИЗ!',
   'Show word':'Показать слово',
   'Scratch to reveal':'Сотрите, чтобы открыть',
@@ -369,7 +370,7 @@ function refreshDynamicLanguage(){
 
 function applyLanguage(shouldSave=true){
   document.documentElement.lang=uiLanguage==='ru'?'ru':'en';
-  document.title=uiText('Scratch & Speak — Lottery Game','Scratch & Speak — Лотерея');
+  document.title=uiText('Scratch & Speak — Lottery Game','Сотри защитный слой — Лотерея');
   langRuBtn?.classList.toggle('active',uiLanguage==='ru');
   langEnBtn?.classList.toggle('active',uiLanguage==='en');
   translateStaticDom();
